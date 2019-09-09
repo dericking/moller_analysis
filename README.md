@@ -1,2 +1,2 @@
 # moller_analysis
-Starting repository for moller polarimetry analysis. We can move this to an official JLab directory once it's usable.
+Starting repository for moller polarimetry analysis. We can transfer this to Simona as an official JLab repository once it's usable.
