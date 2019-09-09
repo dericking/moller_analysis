@@ -133,14 +133,13 @@ void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
   // FOR TH2D DO THE SAME THING 
   const Int_t nhist1 = 7;
   TH1F * H[nhist1];
-  //H[0] = new TH1F("inc_sng_l", "Single Left Increments",  1000,   0., 1000);
-  H[0] = new TH1F("inc_sng_l", Form("Single Left Increments - Run %i",RUNN),  1000,   0., 1000);
-  H[1] = new TH1F("inc_sng_r", "Single Right Increments", 1000,   0., 1000);
-  H[2] = new TH1F("inc_coinc", "Coincidence Increments",   250,   0.,  250);
-  H[3] = new TH1F("inc_accid", "Accidental Increments",    500,   0.,  500);
-  H[4] = new TH1F("inc_bcm_q", "Beam Charge Incrememnts",  500,   0.,  500);
-  H[5] = new TH1F("asym_uncr", "Uncorrected Asym Distro",  250, -0.5,  0.5);
-  H[6] = new TH1F("asym_corr", "Corrected Asym Distro",    250, -0.5,  0.5);
+  H[0] = new TH1F("inc_sng_l", Form("Single Left Increments - Run %i",RUNN),  10000,  0, 10000);
+  H[1] = new TH1F("inc_sng_r", Form("Single Right Increments - Run %i",RUNN), 10000,  0, 10000);
+  H[2] = new TH1F("inc_coinc", Form("Coincidence Increments - Run %i",RUNN),  10000,  0, 10000);
+  H[3] = new TH1F("inc_accid", Form("Accidental Increments - Run %i",RUNN),   10000,  0, 10000);
+  H[4] = new TH1F("inc_bcm_q", Form("Beam Charge Incrememnts - Run %i",RUNN), 10000,  0, 10000);
+  H[5] = new TH1F("asym_uncr", Form("Uncorrected Asym Distro - Run %i",RUNN),  500,  -1,     1);
+  H[6] = new TH1F("asym_corr", Form("Corrected Asym Distro - Run %i",RUNN),    500,  -1,     1);
 
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
