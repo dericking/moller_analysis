@@ -1,2 +1,6 @@
 # moller_analysis
-Starting repository for moller polarimetry analysis. We can transfer this to Simona as an official JLab repository once it's usable.
+## 2019 version
+Starting repository for moller polarimetry analysis. We can transfer this to Simona once it's usable.
+
+### Rules:
+Commit as you please and how you please. Feel free to add to-do lists, thoughts, ideas under *Issues*.
