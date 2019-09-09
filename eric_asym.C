@@ -1,7 +1,7 @@
 //**************************************************************** (╯°□°）╯︵ ┻━┻
 //
 //  Macro currently takes three arguments
-//     (1) FILE -- [Number of run, currently assumes run in same folder.]
+//     (1) FILE -- [Number of run, currently assumes run in same file.]
 //     (2) HELN -- [4:Quartet,8:Octet]
 //     (3) DELAY - [helicity delay]
 //
@@ -138,6 +138,9 @@ void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
   H[2] = new TH1F("inc_coinc", Form("Coincidence Increments - Run %i",RUNN),  10000,  0, 10000);
   H[3] = new TH1F("inc_accid", Form("Accidental Increments - Run %i",RUNN),   10000,  0, 10000);
   H[4] = new TH1F("inc_bcm_q", Form("Beam Charge Incrememnts - Run %i",RUNN), 10000,  0, 10000);
+  Int_t asymbin = 500;
+  Int_t asymmin =  -1;
+  Int_t asymmax =   1;
   H[5] = new TH1F("asym_uncr", Form("Uncorrected Asym Distro - Run %i",RUNN),  500,  -1,     1);
   H[6] = new TH1F("asym_corr", Form("Corrected Asym Distro - Run %i",RUNN),    500,  -1,     1);
 
@@ -458,23 +461,23 @@ void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
   TCanvas * cIncrements = new TCanvas("cIncrements","cIncrements",1200,800);
   cIncrements->Divide(3,2);
   cIncrements->cd(1);
-  Int_t x1_1 = H[0]->FindFirstBinAbove( 0. , 1 ); 
-  Int_t x2_1 = H[0]->FindLastBinAbove ( 0. , 1 );
-  x1_1 += -20;
-  x2_1 +=  20;
-  H[0]->GetXaxis()->SetRangeUser(x1_1,x2_1);
+  Int_t x1_0 = H[0]->FindFirstBinAbove( 0. , 1 );
+  Int_t x2_0 = H[0]->FindLastBinAbove ( 0. , 1 );
+  x1_0 += -20;
+  x2_0 +=  20;
+  H[0]->GetXaxis()->SetRangeUser(x1_0,x2_0);
   H[0]->Draw();
   //
   cIncrements->cd(2);
-  Int_t x1_0 = H[1]->FindFirstBinAbove( 0. , 1 ); 
-  Int_t x2_0 = H[1]->FindLastBinAbove ( 0. , 1 );
+  Int_t x1_1 = H[1]->FindFirstBinAbove( 0. , 1 );
+  Int_t x2_1 = H[1]->FindLastBinAbove ( 0. , 1 );
   x1_1 += -20;
   x2_1 +=  20;
   H[1]->GetXaxis()->SetRangeUser(x1_1,x2_1);
   H[1]->Draw();
   //
   cIncrements->cd(3);
-  Int_t x1_4 = H[4]->FindFirstBinAbove( 0. , 1 ); 
+  Int_t x1_4 = H[4]->FindFirstBinAbove( 0. , 1 );
   Int_t x2_4 = H[4]->FindLastBinAbove ( 0. , 1 );
   x1_4 += -20;
   x2_4 +=  20;
@@ -482,7 +485,7 @@ void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
   H[4]->Draw();
   //
   cIncrements->cd(4);
-  Int_t x1_2 = H[2]->FindFirstBinAbove( 0. , 1 ); 
+  Int_t x1_2 = H[2]->FindFirstBinAbove( 0. , 1 );
   Int_t x2_2 = H[2]->FindLastBinAbove ( 0. , 1 );
   x1_2 += -20;
   x2_2 +=  20;
@@ -490,13 +493,13 @@ void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
   H[2]->Draw();
   //
   cIncrements->cd(5);
-  Int_t x1_3 = H[3]->FindFirstBinAbove( 0. , 1 ); 
+  Int_t x1_3 = H[3]->FindFirstBinAbove( 0. , 1 );
   Int_t x2_3 = H[3]->FindLastBinAbove ( 0. , 1 );
   x1_3 += -20;
   x2_3 +=  20;
   H[3]->GetXaxis()->SetRangeUser(x1_3,x2_3);
   H[3]->Draw();
-  
+
 
   TCanvas * cAsymmetries = new TCanvas("cAsymmetries","cAsymmetries",1200,400);
   cAsymmetries->Divide(2,1);
@@ -505,12 +508,23 @@ void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
   H[5]->Fit("gaus");
   TF1 * fit5 = H[5]->GetFunction("gaus");
   fit5->SetParNames("Const","Mean","Sigma");
+  Int_t x1_5 = H[5]->FindFirstBinAbove( 0. , 1 );
+  Int_t x2_5 = H[5]->FindLastBinAbove ( 0. , 1 );
+  Double_t X1_5 = ((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin * (Double_t)x1_5 * 0.9 - 1.;
+  Double_t X2_5 = ((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin * (Double_t)x2_5 * 1.1 - 1.;
+  H[5]->GetXaxis()->SetRangeUser(X1_5,X2_5);
   H[5]->Draw();
+  //
   cAsymmetries->cd(2);
   H[6]->Draw();
   H[6]->Fit("gaus");
   TF1 * fit6 = H[6]->GetFunction("gaus");
   fit6->SetParNames("GausConst","GausMean","GausSigma");
+  Int_t x1_6 = H[6]->FindFirstBinAbove( 0. , 1 );
+  Int_t x2_6 = H[6]->FindLastBinAbove ( 0. , 1 );
+  Double_t X1_6 = ((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin * (Double_t)x1_6 * 0.9 - 1.;
+  Double_t X2_6 = ((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin * (Double_t)x2_6 * 1.1 - 1.;
+  H[6]->GetXaxis()->SetRangeUser(X1_6,X2_6);
   H[6]->Draw();
 
 
