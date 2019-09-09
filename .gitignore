@@ -1,5 +1,3 @@
-# Object file
-*.o
-
-# Ada Library Information
-*.ali
+# IGNORE THE FOLLOWING FILES FOR NOW
+*.root
+*.pdf
