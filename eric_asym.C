@@ -457,62 +457,41 @@ void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
   cScalers->cd(5);
   gr_accid->Draw("AP");
 
-
   TCanvas * cIncrements = new TCanvas("cIncrements","cIncrements",1200,800);
+  Int_t sidebuff = 100;
   cIncrements->Divide(3,2);
   cIncrements->cd(1);
-  Int_t x1_0 = H[0]->FindFirstBinAbove( 0. , 1 );
-  Int_t x2_0 = H[0]->FindLastBinAbove ( 0. , 1 );
-  x1_0 += -20;
-  x2_0 +=  20;
-  H[0]->GetXaxis()->SetRangeUser(x1_0,x2_0);
+  H[0]->GetXaxis()->SetRangeUser(H[0]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[0]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[0]->Draw();
   //
   cIncrements->cd(2);
-  Int_t x1_1 = H[1]->FindFirstBinAbove( 0. , 1 );
-  Int_t x2_1 = H[1]->FindLastBinAbove ( 0. , 1 );
-  x1_1 += -20;
-  x2_1 +=  20;
-  H[1]->GetXaxis()->SetRangeUser(x1_1,x2_1);
+  H[1]->GetXaxis()->SetRangeUser(H[1]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[1]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[1]->Draw();
   //
   cIncrements->cd(3);
-  Int_t x1_4 = H[4]->FindFirstBinAbove( 0. , 1 );
-  Int_t x2_4 = H[4]->FindLastBinAbove ( 0. , 1 );
-  x1_4 += -20;
-  x2_4 +=  20;
-  H[4]->GetXaxis()->SetRangeUser(x1_4,x2_4);
+  H[4]->GetXaxis()->SetRangeUser(H[4]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[4]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[4]->Draw();
   //
   cIncrements->cd(4);
-  Int_t x1_2 = H[2]->FindFirstBinAbove( 0. , 1 );
-  Int_t x2_2 = H[2]->FindLastBinAbove ( 0. , 1 );
-  x1_2 += -20;
-  x2_2 +=  20;
-  H[2]->GetXaxis()->SetRangeUser(x1_2,x2_2);
+  H[2]->GetXaxis()->SetRangeUser(H[2]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[2]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[2]->Draw();
   //
   cIncrements->cd(5);
-  Int_t x1_3 = H[3]->FindFirstBinAbove( 0. , 1 );
-  Int_t x2_3 = H[3]->FindLastBinAbove ( 0. , 1 );
-  x1_3 += -20;
-  x2_3 +=  20;
-  H[3]->GetXaxis()->SetRangeUser(x1_3,x2_3);
+  H[3]->GetXaxis()->SetRangeUser(H[3]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[3]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[3]->Draw();
 
 
   TCanvas * cAsymmetries = new TCanvas("cAsymmetries","cAsymmetries",1200,400);
+  Double_t bufffact = 0.1;
   cAsymmetries->Divide(2,1);
   cAsymmetries->cd(1);
   H[5]->Draw();
   H[5]->Fit("gaus");
   TF1 * fit5 = H[5]->GetFunction("gaus");
   fit5->SetParNames("Const","Mean","Sigma");
-  Int_t x1_5 = H[5]->FindFirstBinAbove( 0. , 1 );
-  Int_t x2_5 = H[5]->FindLastBinAbove ( 0. , 1 );
-  Double_t X1_5 = ((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin * (Double_t)x1_5 * 0.9 - 1.;
-  Double_t X2_5 = ((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin * (Double_t)x2_5 * 1.1 - 1.;
-  H[5]->GetXaxis()->SetRangeUser(X1_5,X2_5);
+  H[5]->GetXaxis()->SetRangeUser( (((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin*(Double_t)H[5]->FindFirstBinAbove(0,1)*(1-bufffact))+(Double_t)asymmin) ,
+                                  (((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin*(Double_t)H[5]->FindLastBinAbove (0,1)*(1+bufffact))+(Double_t)asymmin)
+                                );
   H[5]->Draw();
   //
   cAsymmetries->cd(2);
@@ -520,11 +499,9 @@ void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
   H[6]->Fit("gaus");
   TF1 * fit6 = H[6]->GetFunction("gaus");
   fit6->SetParNames("GausConst","GausMean","GausSigma");
-  Int_t x1_6 = H[6]->FindFirstBinAbove( 0. , 1 );
-  Int_t x2_6 = H[6]->FindLastBinAbove ( 0. , 1 );
-  Double_t X1_6 = ((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin * (Double_t)x1_6 * 0.9 - 1.;
-  Double_t X2_6 = ((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin * (Double_t)x2_6 * 1.1 - 1.;
-  H[6]->GetXaxis()->SetRangeUser(X1_6,X2_6);
+  H[6]->GetXaxis()->SetRangeUser( (((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin*(Double_t)H[6]->FindFirstBinAbove(0,1)*(1-bufffact))+(Double_t)asymmin) ,
+                                  (((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin*(Double_t)H[6]->FindLastBinAbove (0,1)*(1+bufffact))+(Double_t)asymmin)
+                                );
   H[6]->Draw();
 
 
