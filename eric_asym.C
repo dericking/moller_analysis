@@ -24,7 +24,7 @@ void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
   //PRINT OUTPUT
   ofstream output;
   output.open("ascii.out", ios::trunc);
-  
+
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //DECLARE DATA STACKS
@@ -130,7 +130,7 @@ void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // HISTOGRAMS :: KEEP NHIST UPDATED FOR PRINTING AT END.
   // WHEN YOU ADD HISTOGRAM INCREMEMNT 'nhist1' AND ADD HISTOGRAM TO ARRAY
-  // FOR TH2D DO THE SAME THING 
+  // FOR TH2D DO THE SAME THING
   const Int_t nhist1 = 7;
   TH1F * H[nhist1];
   H[0] = new TH1F("inc_sng_l", Form("Single Left Increments - Run %i",RUNN),  10000,  0, 10000);
@@ -204,7 +204,7 @@ void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // START LOOPING THROUGH THE ENTRIES OF THE ROOT NTUPLE
   const Long64_t nentries = T->GetEntriesFast();
-  cout << "Total number of scaler and ADC entries in ROOT file: " << nentries << endl; 
+  cout << "Total number of scaler and ADC entries in ROOT file: " << nentries << endl;
   // FIXME: IF THIS IS ZERO THEN WE NEED TO SKIP TO END!
 
   Long64_t nbytes = 0, nb = 0;
@@ -217,7 +217,7 @@ void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
     if(nsca > 0){
       scalerctr++;                 //INCREASE SCALER COUNTER
       helflip++;                   //INCREASE HELICITY FLIP NUMBER
-      
+
        if( itrig[7] == 0 ){
         gdhelcyc++;                //INCREASE GOOD HELICITY CYCLE NUMBER
         if( helflip!=heln ){
@@ -238,7 +238,7 @@ void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
         //STACK INDEX TO CALCULATE ASYMMETRY SHOULD BE (LAST WRITTEN HELICITY - CYCLE SIZE + 1)
         Int_t helindex = ((scalerctr-1)+deln)%stksz; //INDEX FOR HELICITY STACK
         if(helindex < 0) helindex += stksz;          //WHY DOES c++ RETURN A NEGATIVE MODULO, OR IS % A REMAINDER???
-        if(b_printascii) output << "Last scaler's helicity index: " << helindex << endl; 
+        if(b_printascii) output << "Last scaler's helicity index: " << helindex << endl;
         Int_t stackindex = helindex - heln + 1;
         if(stackindex < 0) stackindex += stksz;
         if(b_printascii) output << "  --> Starting Stack Index: " << stackindex << endl;
@@ -262,13 +262,13 @@ void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
           stackindex++;
           stackindex = stackindex%(stksz);
         }
-       
+
         //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
         //CALCULATE THE ASYMMETRY
         //(1) DIVIDE OUT H0 AND H1 BY THE NUMBER OF HELICITY FLIPS PER CYCLE
         Double_t dhelsumu[2] = { helsumu[0] / ((Double_t)heln / 2.),
-                                 helsumu[1] / ((Double_t)heln / 2.) }; 
-        Double_t dhelsumc[2] = { helsumc[0] / ((Double_t)heln / 2.), 
+                                 helsumu[1] / ((Double_t)heln / 2.) };
+        Double_t dhelsumc[2] = { helsumc[0] / ((Double_t)heln / 2.),
                                  helsumc[1] / ((Double_t)heln / 2.) };
         for(Int_t i = 0; i < 2; i++){
           dhelsumu[i] /= (Double_t)bcmsums[i] / ((Double_t)heln / 2.);
@@ -286,11 +286,11 @@ void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
 
         //PRINT OUT THE SUMS AND CALCULATED ASYMMETRIES
         if(b_printascii){
-          output << "      --> helsumu[0]: " << std::setw(7)  << helsumu[0] 
+          output << "      --> helsumu[0]: " << std::setw(7)  << helsumu[0]
                  << ", helsumu[1]: " << std::setw(7) << helsumu[1] << endl;
-          output << "      --> helsumc[0]: " << std::setw(7) << helsumc[0] 
+          output << "      --> helsumc[0]: " << std::setw(7) << helsumc[0]
                  << ", helsumc[1]: " << std::setw(7) << helsumc[1] << endl;
-          output << "      --> bcmsums[0]: " << std::setw(7) << bcmsums[0] 
+          output << "      --> bcmsums[0]: " << std::setw(7) << bcmsums[0]
                  << ", bcmsums[1]: " << std::setw(7) << bcmsums[1] << endl;
           output << "        --> asymu: " << std::setw(7) << asymu << endl;
           output << "        --> asymc: " << std::setw(7) << asymc << endl;
@@ -361,8 +361,8 @@ void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
       if(currshel > 0) currshel /= currshel;
       if(currshel != (Int_t)itrig[5] && jentry != 0){   //WHAT HAPPENS IF SCALER CALC'D HEL DOESN'T MATCH TRIGGER?
         if(b_printascii){
-          output << "HELICITY MISMATCH! currshel: " 
-                 << currshel << ", currthel: " 
+          output << "HELICITY MISMATCH! currshel: "
+                 << currshel << ", currthel: "
                  << (Int_t)itrig[5] << endl;
         }
         gdhelcyc = -1*skipcyc;                 //RESET GOOD CYCLES AND SKIP NEXT FEW
@@ -489,8 +489,8 @@ void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
   H[5]->Fit("gaus");
   TF1 * fit5 = H[5]->GetFunction("gaus");
   fit5->SetParNames("Const","Mean","Sigma");
-  H[5]->GetXaxis()->SetRangeUser( (((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin*(Double_t)H[5]->FindFirstBinAbove(0,1)*(1-bufffact))+(Double_t)asymmin) ,
-                                  (((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin*(Double_t)H[5]->FindLastBinAbove (0,1)*(1+bufffact))+(Double_t)asymmin)
+  H[5]->GetXaxis()->SetRangeUser( (((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin*(Double_t)H[5]->FindFirstBinAbove(0,1)*(1-bufffact)+(Double_t)asymmin) ,
+                                  (((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin*(Double_t)H[5]->FindLastBinAbove (0,1)*(1+bufffact)+(Double_t)asymmin)
                                 );
   H[5]->Draw();
   //
@@ -499,8 +499,8 @@ void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
   H[6]->Fit("gaus");
   TF1 * fit6 = H[6]->GetFunction("gaus");
   fit6->SetParNames("GausConst","GausMean","GausSigma");
-  H[6]->GetXaxis()->SetRangeUser( (((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin*(Double_t)H[6]->FindFirstBinAbove(0,1)*(1-bufffact))+(Double_t)asymmin) ,
-                                  (((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin*(Double_t)H[6]->FindLastBinAbove (0,1)*(1+bufffact))+(Double_t)asymmin)
+  H[6]->GetXaxis()->SetRangeUser( (((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin*(Double_t)H[6]->FindFirstBinAbove(0,1)*(1-bufffact)+(Double_t)asymmin) ,
+                                  (((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin*(Double_t)H[6]->FindLastBinAbove (0,1)*(1+bufffact)+(Double_t)asymmin)
                                 );
   H[6]->Draw();
 
