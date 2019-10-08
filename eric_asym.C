@@ -186,8 +186,26 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
    gr_charg->SetMarkerStyle(6);
   TGraph * gr_asymm = new TGraph();
    gr_asymm->SetTitle("Corrected Asymmetry;Helicity Cycle Beginning at Entry$");
-   gr_asymm->SetMarkerStyle(7);
-
+   gr_asymm->SetMarkerStyle(6);
+  TGraph * gr_qasym = new TGraph();
+   gr_qasym->SetTitle("Charge Asymmetry; Charge Asymmetry at Entry$");
+   gr_qasym->SetMarkerStyle(6);
+  TGraph * gr_polar = new TGraph();
+   gr_polar->SetTitle("Polarizaton; Polarization at Entry$");
+   gr_polar->SetMarkerStyle(6);
+  Int_t ratectr = 1;
+  TGraph * gr_slrat = new TGraph();
+   gr_slrat->SetTitle("Left Singles Rate; Left Singles Rate at Entry$");
+   gr_slrat->SetMarkerStyle(6);
+  TGraph * gr_srrat = new TGraph();
+   gr_srrat->SetTitle("Right Singles Rate; Right Singles Rate at Entry$");
+   gr_srrat->SetMarkerStyle(6);
+  TGraph * gr_cnrat = new TGraph();
+   gr_cnrat->SetTitle("Coincidence Rate; Coincidence Rate at Entry$");
+   gr_cnrat->SetMarkerStyle(6);
+  TGraph * gr_acrat = new TGraph();
+   gr_acrat->SetTitle("Accidentals Rate; Accidentals Rate at Entry$");
+   gr_acrat->SetMarkerStyle(6);
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //VALUES USED IN CALCULATIONS ... SHOULD PROBABLY MOVE STACKS DOWN HERE
@@ -303,8 +321,10 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
         H[5]->Fill(asymu);
         H[6]->Fill(asymc);
         hcycrec++;
-        //(5) FILL ASYM:ENTRY$ GRAPH
+        //(5) FILL ASYM:ENTRY$, POL:ENTRY$, TODO: QASYM:ENTRY$ GRAPHS
         gr_asymm->SetPoint(hcycrec,jentry-skipcyc*HELN-HELN,asymc);
+        gr_polar->SetPoint(hcycrec,jentry-skipcyc*HELN-HELN,(asymc/(ptar*anpow)));
+        //gr_qasym->SetPoint(hcycrec,jentry-skipcyc*HELN-HELN,/*FIXME:*/);
 
         //PRINT OUT THE SUMS AND CALCULATED ASYMMETRIES
         if(b_printascii){
@@ -391,7 +411,13 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
         errcnts[1]++;                          //ERROR TRIGGER/SCALER HELICITY MISMATCH
       }
       previsca9 = isca[9];                     //SAVE THE PREVIOUS ISCA[9] TO GET NEXT HELICITY FROM SCALER
-
+      if(beaminc != 0 && coininc > 0){
+        gr_cnrat->SetPoint(scalerctr+1,jentry,(Double_t)coininc*freq);
+        gr_slrat->SetPoint(scalerctr+1,jentry,(Double_t)leftinc*freq);
+        gr_srrat->SetPoint(scalerctr+1,jentry,(Double_t)rightinc*freq);
+        gr_acrat->SetPoint(scalerctr+1,jentry,(Double_t)accdinc*freq);
+        ratectr++;
+      }
 
       //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
       // POPULATE THE HELICITY, INCREMENT AND SCALER STACKS
@@ -526,13 +552,47 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
                                 );
   H[6]->Draw();
 
-
-  TCanvas * cGrAsymmByEntry = new TCanvas("cGrAsymmByEntry","cGrAsymmByEntry",1200,400);
+  TCanvas * cGrAsymmtry = new TCanvas("cGrAsymmtry","cGrAsymmtry",1200,400);
   gr_asymm->Draw("AP");
   gr_asymm->Fit("pol0");
   TF1 * fitgrasym = gr_asymm->GetFunction("pol0");
   fitgrasym->SetParNames("Mean");
   gr_asymm->Draw("AP");
+
+  TCanvas * cGrPolarizn = new TCanvas("cGrPolarizn","cGrPolarizn",1200,400);
+  gr_polar->Draw("AP");
+  gr_polar->Fit("pol0");
+  TF1 * fitgrpolr = gr_polar->GetFunction("pol0");
+  fitgrpolr->SetParNames("Mean");
+  gr_polar->Draw("AP");
+
+  TCanvas * cGrCoinRate = new TCanvas("cGrCoinRate","cGrCoinRate",1200,400);
+  gr_cnrat->Draw("AP");
+  gr_cnrat->Fit("pol0");
+  TF1 * fitgrcrat = gr_cnrat->GetFunction("pol0");
+  fitgrcrat->SetParNames("Mean");
+  gr_cnrat->Draw("AP");
+
+  TCanvas * cGrLeftRate = new TCanvas("cGrLeftRate","cGrLeftRate",1200,400);
+  gr_slrat->Draw("AP");
+  gr_slrat->Fit("pol0");
+  TF1 * fitgrlrat = gr_slrat->GetFunction("pol0");
+  fitgrlrat->SetParNames("Mean");
+  gr_slrat->Draw("AP");
+
+  TCanvas * cGrRghtRate = new TCanvas("cGrRghtRate","cGrRghtRate",1200,400);
+  gr_srrat->Draw("AP");
+  gr_srrat->Fit("pol0");
+  TF1 * fitgrrrat = gr_srrat->GetFunction("pol0");
+  fitgrrrat->SetParNames("Mean");
+  gr_srrat->Draw("AP");
+
+  TCanvas * cGrAccdRate = new TCanvas("cGrAccdRate","cGrAccdRate",1200,400);
+  gr_acrat->Draw("AP");
+  gr_acrat->Fit("pol0");
+  TF1 * fitgrarat = gr_acrat->GetFunction("pol0");
+  fitgrarat->SetParNames("Mean");
+  gr_acrat->Draw("AP");
 
 
   //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
@@ -547,7 +607,12 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   cScalers->SaveAs(sSaveFirstPage);
   cIncrements->SaveAs(sSaveMiddlePage);
   cAsymmetries->SaveAs(sSaveMiddlePage);
-  cGrAsymmByEntry->SaveAs(sSaveLastPage);
+  cGrCoinRate->SaveAs(sSaveMiddlePage);
+  cGrLeftRate->SaveAs(sSaveMiddlePage);
+  cGrRghtRate->SaveAs(sSaveMiddlePage);
+  cGrAccdRate->SaveAs(sSaveMiddlePage);
+  cGrAsymmtry->SaveAs(sSaveMiddlePage);
+  cGrPolarizn->SaveAs(sSaveLastPage);
 
 
   //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
