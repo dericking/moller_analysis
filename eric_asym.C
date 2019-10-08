@@ -159,7 +159,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   H[1] = new TH1F("inc_sng_r", Form("Single Right Increments - Run %i",RUNN), 10000,  0, 10000);
   H[2] = new TH1F("inc_coinc", Form("Coincidence Increments - Run %i",RUNN),  10000,  0, 10000);
   H[3] = new TH1F("inc_accid", Form("Accidental Increments - Run %i",RUNN),   10000,  0, 10000);
-  H[4] = new TH1F("inc_bcm_q", Form("Beam Charge Incrememnts - Run %i",RUNN), 10000,  0, 10000);
+  H[4] = new TH1F("inc_bcm_q", Form("Beam Charge Increments - Run %i",RUNN), 10000,  0, 10000);
   Int_t asymbin = 500;
   Int_t asymmin =  -1;
   Int_t asymmax =   1;
