@@ -1,23 +1,45 @@
 //**************************************************************** (╯°□°）╯︵ ┻━┻
 //
 //  Macro currently takes three arguments
-//     (1) FILE -- [Number of run, currently assumes run in same file.]
+//     (1) FILE -- [Filename as string]
 //     (2) HELN -- [4:Quartet,8:Octet]
 //     (3) DELAY - [helicity delay]
+//     (4) FREQ -- [frequency in hertz]
 //
 //******************************************************************************
 
 #include<TROOT.h>
+#include<TBranch.h>
 #include<TString.h>
 #include<vector>
+#include<algorithm>
+#include<iterator>
 
-void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
+Bool_t isnonnum(char c){
+  return !(c >= '0' && c <= '9');
+}
+
+void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
+
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //ANALYSIS PARAMETERS
-  Bool_t b_printascii = true;
-  const Int_t heln  = HELN;     //QUARTET(4) OCTET(8)
-  const Int_t deln  = -1*DELAY; //HELICTY SIGNAL DELAY
-  const Int_t stksz = 24;       //STACK SIZE
+  const Bool_t b_printascii = false;
+  const Int_t heln          = HELN;     //QUARTET(4) OCTET(8)
+  const Int_t deln          = -1*DELAY; //HELICTY SIGNAL DELAY
+  const Int_t stksz         = 24;       //STACK SIZE
+
+  const Double_t freq       = (Double_t)FREQ; //HELICITY FREQUENCY
+  const Double_t anpow      = 0.77301;        //ANALYZING POWER
+  const Double_t ptar       = 0.08012;        //TARGET POLARIZATION
+
+  ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  //STRIP RUN NUMBER FROM FILE NAME
+  std::string fnamecopy = FILE;
+  fnamecopy.erase(std::remove_if(fnamecopy.begin(),fnamecopy.end(),isnonnum),fnamecopy.end());
+  stringstream ss;
+  ss << fnamecopy;
+  Int_t RUNN;
+  ss >> RUNN;
 
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
@@ -52,7 +74,7 @@ void eric_asym(Int_t RUNN, Int_t HELN, Int_t DELAY){
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //LOAD ROOT FILE
   TString sfile("");
-  sfile.Form("moller_data_%i.root",RUNN);
+  sfile=FILE;
   cout << "File name to be opened: " << sfile << endl;
   TFile * fin = new TFile( sfile );
   TTree * T;
