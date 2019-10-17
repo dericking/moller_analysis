@@ -263,7 +263,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
         if( helflip!=heln ){
           gdhelcycle = -1*skipcyc; //LAST CYCLE DID NOT HAVE PEOPER NUMBER OF HELICITY FLIPS
           errcnts[0]++;            //ADD TO ERROR COUNTING INSUFFICIENT FLIPS IN CYCLE
-          output << "INSUFFICIENT FLIPS IN CYCLE!!! HELFLIP: " << helflip << " & HELN: " << heln << endl;
+          if(b_printascii) output << "INSUFFICIENT FLIPS IN CYCLE!!! HELFLIP: " << helflip << " & HELN: " << heln << endl;
         }
         helflip  = 0;              //IF NEW CYCLE CHANGE HELICITY FLIP VALUE TO ZERO
       }
@@ -328,14 +328,14 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
 
         //PRINT OUT THE SUMS AND CALCULATED ASYMMETRIES
         if(b_printascii){
-          output << "      --> helsumu[0]: " << std::setw(7)  << helsumu[0]
-                 << ", helsumu[1]: " << std::setw(7) << helsumu[1] << endl;
+          output << "      --> helsumu[0]: " << std::setw(7) << helsumu[0]
+                 << ", helsumu[1]: "         << std::setw(7) << helsumu[1] << endl;
           output << "      --> helsumc[0]: " << std::setw(7) << helsumc[0]
-                 << ", helsumc[1]: " << std::setw(7) << helsumc[1] << endl;
+                 << ", helsumc[1]: "         << std::setw(7) << helsumc[1] << endl;
           output << "      --> bcmsums[0]: " << std::setw(7) << bcmsums[0]
-                 << ", bcmsums[1]: " << std::setw(7) << bcmsums[1] << endl;
-          output << "        --> asymu: " << std::setw(7) << asymu << endl;
-          output << "        --> asymc: " << std::setw(7) << asymc << endl;
+                 << ", bcmsums[1]: "         << std::setw(7) << bcmsums[1] << endl;
+          output << "        --> asymu: "    << std::setw(7) << asymu      << endl;
+          output << "        --> asymc: "    << std::setw(7) << asymc      << endl;
         }
         //RESET THE SUMS ARRAYS FOR NEXT TIME
         for(Int_t i = 0; i < 2; i++){
