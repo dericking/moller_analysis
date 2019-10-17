@@ -556,43 +556,72 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   gr_asymm->Draw("AP");
   gr_asymm->Fit("pol0");
   TF1 * fitgrasym = gr_asymm->GetFunction("pol0");
-  fitgrasym->SetParNames("Mean");
+  fitgrasym->SetParNames(0,"Mean");
   gr_asymm->Draw("AP");
 
   TCanvas * cGrPolarizn = new TCanvas("cGrPolarizn","cGrPolarizn",1200,400);
   gr_polar->Draw("AP");
   gr_polar->Fit("pol0");
   TF1 * fitgrpolr = gr_polar->GetFunction("pol0");
-  fitgrpolr->SetParNames("Mean");
+  fitgrpolr->SetParNames(0,"Mean");
   gr_polar->Draw("AP");
 
   TCanvas * cGrCoinRate = new TCanvas("cGrCoinRate","cGrCoinRate",1200,400);
   gr_cnrat->Draw("AP");
   gr_cnrat->Fit("pol0");
   TF1 * fitgrcrat = gr_cnrat->GetFunction("pol0");
-  fitgrcrat->SetParNames("Mean");
+  fitgrcrat->SetParNames(0,"Mean");
   gr_cnrat->Draw("AP");
 
   TCanvas * cGrLeftRate = new TCanvas("cGrLeftRate","cGrLeftRate",1200,400);
   gr_slrat->Draw("AP");
   gr_slrat->Fit("pol0");
   TF1 * fitgrlrat = gr_slrat->GetFunction("pol0");
-  fitgrlrat->SetParNames("Mean");
+  fitgrlrat->SetParNames(0,"Mean");
   gr_slrat->Draw("AP");
 
   TCanvas * cGrRghtRate = new TCanvas("cGrRghtRate","cGrRghtRate",1200,400);
   gr_srrat->Draw("AP");
   gr_srrat->Fit("pol0");
   TF1 * fitgrrrat = gr_srrat->GetFunction("pol0");
-  fitgrrrat->SetParNames("Mean");
+  fitgrrrat->SetParNames(0,"Mean");
   gr_srrat->Draw("AP");
 
   TCanvas * cGrAccdRate = new TCanvas("cGrAccdRate","cGrAccdRate",1200,400);
   gr_acrat->Draw("AP");
   gr_acrat->Fit("pol0");
   TF1 * fitgrarat = gr_acrat->GetFunction("pol0");
-  fitgrarat->SetParNames("Mean");
+  fitgrarat->SetParNames(0,"Mean");
   gr_acrat->Draw("AP");
+
+
+  //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // SAVE RUN DATA SUMMARY -- RUN,SINGL,SINGR,COINC,ACCID,BCM,ASYM,ASYMERR,POL,POLERR
+  ofstream summary;
+  std::stringstream ssof;
+  ssof << "finalStats_" << RUNN << ".txt";
+  cout << "summary file name: " << (ssof.str()).c_str() << endl;
+  summary.open( (ssof.str()).c_str() );
+  Int_t lrat = (Int_t)(fitgrlrat->GetParameter(0) );
+  Int_t rrat = (Int_t)(fitgrrrat->GetParameter(0) );
+  Int_t crat = (Int_t)(fitgrcrat->GetParameter(0) );
+  Int_t arat = (Int_t)(fitgrarat->GetParameter(0) );
+  Int_t qrat = (Int_t)(H[4]->GetMean() * FREQ);
+  Double_t aavg = fit5->GetParameter(1);
+  Double_t aerr = fit5->GetParError(1);
+  Double_t pavg = fitgrpolr->GetParameter(0);
+  Double_t perr = fitgrpolr->GetParError(0);
+  summary << std::setw(5) << RUNN << "  "
+          << std::setw(8) << lrat << "  "
+          << std::setw(8) << rrat << "  "
+          << std::setw(6) << crat << "  "
+          << std::setw(5) << arat << "  "
+          << std::setw(6) << qrat << "  "
+          << std::setw(6) << std::setprecision(5) << aavg << "  "
+          << std::setw(6) << std::setprecision(5) << aerr << "  "
+          << std::setw(7) << std::setprecision(4) << pavg << "  "
+          << std::setw(7) << std::setprecision(4) << perr << "  " << endl;
+  summary.close();
 
 
   //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
