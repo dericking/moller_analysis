@@ -377,25 +377,25 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
 
       prevLeft = currLeft;                    //CALCULATE LEFT SINGLES INCREMENTS
       currLeft = isca[0];
-      gr_singl->SetPoint(scalerctr+1,scalerctr,currLeft);
+      if(beaminc != 0) gr_singl->SetPoint(scalerctr+1,scalerctr,currLeft);
       Int_t leftinc = currLeft - prevLeft;
       if(beaminc != 0) H[0]->Fill(leftinc);
 
       prevRght = currRght;    	       	       //CALCULATE RIGHT SINGLES INCREMENTS
       currRght = isca[1];
-      gr_singr->SetPoint(scalerctr+1,scalerctr,currRght);
+      if(beaminc != 0) gr_singr->SetPoint(scalerctr+1,scalerctr,currRght);
       Int_t rightinc = currRght - prevRght;
       if(beaminc != 0) H[1]->Fill(rightinc);
 
       prevCoin = currCoin;    	       	       //CALCULATE COINCIDENCE INCREMENTS
       currCoin = isca[2];
-      gr_coinc->SetPoint(scalerctr+1,scalerctr,currCoin);
+      if(beaminc != 0) gr_coinc->SetPoint(scalerctr+1,scalerctr,currCoin);
       Int_t coininc = currCoin - prevCoin;
       if(beaminc != 0) H[2]->Fill(coininc);
 
       prevAccd = currAccd;    	       	       //CALCULATE ACCIDNENTAL INCREMENTS
       currAccd = isca[3];
-      gr_accid->SetPoint(scalerctr+1,scalerctr,currAccd);
+      if(beaminc != 0) gr_accid->SetPoint(scalerctr+1,scalerctr,currAccd);
       Int_t accdinc = currAccd - prevAccd;
       if(beaminc != 0) H[3]->Fill(accdinc);
 
