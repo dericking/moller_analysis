@@ -603,28 +603,24 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   gr_cnrat->Draw("AP");
   gr_cnrat->Fit("pol0");
   TF1 * fitgrcrat = gr_cnrat->GetFunction("pol0");
-  fitgrcrat->SetParNames(0,"Mean");
   gr_cnrat->Draw("AP");
 
   TCanvas * cGrLeftRate = new TCanvas("cGrLeftRate","cGrLeftRate",1200,400);
   gr_slrat->Draw("AP");
   gr_slrat->Fit("pol0");
   TF1 * fitgrlrat = gr_slrat->GetFunction("pol0");
-  fitgrlrat->SetParNames(0,"Mean");
   gr_slrat->Draw("AP");
 
   TCanvas * cGrRghtRate = new TCanvas("cGrRghtRate","cGrRghtRate",1200,400);
   gr_srrat->Draw("AP");
   gr_srrat->Fit("pol0");
   TF1 * fitgrrrat = gr_srrat->GetFunction("pol0");
-  fitgrrrat->SetParNames(0,"Mean");
   gr_srrat->Draw("AP");
 
   TCanvas * cGrAccdRate = new TCanvas("cGrAccdRate","cGrAccdRate",1200,400);
   gr_acrat->Draw("AP");
   gr_acrat->Fit("pol0");
   TF1 * fitgrarat = gr_acrat->GetFunction("pol0");
-  fitgrarat->SetParNames(0,"Mean");
   gr_acrat->Draw("AP");
 
 
