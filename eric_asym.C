@@ -163,8 +163,8 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   Int_t asymbin = 500;
   Int_t asymmin =  -1;
   Int_t asymmax =   1;
-  H[5] = new TH1F("asym_uncr", Form("Uncorrected Asym Distro - Run %i",RUNN),  500,  -1,     1);
-  H[6] = new TH1F("asym_corr", Form("Corrected Asym Distro - Run %i",RUNN),    500,  -1,     1);
+  H[5] = new TH1F("asym_uncr", Form("Uncorrected Asym Distro - Run %i",RUNN),  800,  -1,     1);
+  H[6] = new TH1F("asym_corr", Form("Corrected Asym Distro - Run %i",RUNN),    800,  -1,     1);
 
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
