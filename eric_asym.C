@@ -325,8 +325,8 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
           dhelsumc[i] /= (Double_t)bcmsums[i] / ((Double_t)heln / 2.);
         }
         //(3) TAKE THE ASYMMETRY OF THE BCM NORMALIZED SUMS (H0 - H1)/(H0 + H1)
-        Double_t asymu = (dhelsumu[0] - dhelsumu[1])/(dhelsumu[0] + dhelsumu[1]);
-        Double_t asymc = (dhelsumc[0] - dhelsumc[1])/(dhelsumc[0] + dhelsumc[1]);
+        Double_t asymu = (dhelsumu[1] - dhelsumu[0])/(dhelsumu[1] + dhelsumu[0]);
+        Double_t asymc = (dhelsumc[1] - dhelsumc[0])/(dhelsumc[1] + dhelsumc[0]);
         //(4) FILL HISTOGRAMS :)
         H[5]->Fill(asymu);
         H[6]->Fill(asymc);
