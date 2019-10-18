@@ -444,12 +444,16 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
         errcnts[1]++;                          //ERROR TRIGGER/SCALER HELICITY MISMATCH
       }
       previsca9 = isca[9];                     //SAVE THE PREVIOUS ISCA[9] TO GET NEXT HELICITY FROM SCALER
-      if(b_beamon && prevCoin > 0){
+
+      //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+      // FILL IN THE INSTANEOUS RATE GRAPHS
+      if(gdhelcyc >= 0){
+        cout << "rate point number: " << scalerctr+1 << ", rate entry$: " << jentry << endl;
+        cout << "  prev coin: " << prevCoin << ", currCoin: " << currCoin << ", coinRate: " << (Double_t)coininc*freq << endl;
         gr_cnrat->SetPoint(scalerctr+1,jentry,(Double_t)coininc*freq);
         gr_slrat->SetPoint(scalerctr+1,jentry,(Double_t)leftinc*freq);
         gr_srrat->SetPoint(scalerctr+1,jentry,(Double_t)rightinc*freq);
         gr_acrat->SetPoint(scalerctr+1,jentry,(Double_t)accdinc*freq);
-        ratectr++;
       }
 
       //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
