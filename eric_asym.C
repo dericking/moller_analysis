@@ -140,12 +140,17 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // CYCLE TOSSING
   // WHEN YOU ADD AN ERROR -- INCREMENT 'ne', GIVE IT A NAME IN 'errname' (for printout)
-  const Int_t ne = 3;
+  const Int_t ne = 8;
   Int_t errcnts[ne];
   for(Int_t i = 0; i < ne; i++) errcnts[i] = 0;
   const char * errname[ne][100] = {"Incomplete Cycle",
                                    "Hel Trig/Scaler Mismatch",
-                                   "BCM Increment Too Low"
+                                   "BCM Increment Too Low",
+                                   "Negative Singles Left Increment",
+                                   "Negative Singles Right Increment",
+                                   "Negative BCM Increment",
+                                   "Negative Coincidence Increment",
+                                   "Negative Accidentals Increment"
                                    };
 
 
