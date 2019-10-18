@@ -332,7 +332,6 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
         hcycrec++;
         //(5) FILL ASYM:ENTRY$, POL:ENTRY$, TODO: QASYM:ENTRY$ GRAPHS
         gr_asymm->SetPoint(hcycrec,jentry-skipcyc*HELN-HELN,asymc);
-        cout << "entry: " << jentry-skipcyc*HELN-HELN << "  asym: " << asymc << "  --  " << dhelsumc[0] << " , " << dhelsumc[1] << "  --  " << bcmsums[0] << ", " << bcmsums[1] << endl;
         gr_polar->SetPoint(hcycrec,jentry-skipcyc*HELN-HELN,(asymc/(ptar*anpow)));
 
         //PRINT OUT THE SUMS AND CALCULATED ASYMMETRIES
