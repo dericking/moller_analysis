@@ -261,7 +261,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
        if( itrig[7] == 0 ){
         gdhelcyc++;                //INCREASE GOOD HELICITY CYCLE NUMBER
         if( helflip!=heln ){
-          gdhelcycle = -1*skipcyc; //LAST CYCLE DID NOT HAVE PEOPER NUMBER OF HELICITY FLIPS
+          gdhelcyc = -1*skipcyc; //LAST CYCLE DID NOT HAVE PEOPER NUMBER OF HELICITY FLIPS
           errcnts[0]++;            //ADD TO ERROR COUNTING INSUFFICIENT FLIPS IN CYCLE
           if(b_printascii) output << "INSUFFICIENT FLIPS IN CYCLE!!! HELFLIP: " << helflip << " & HELN: " << heln << endl;
         }
@@ -273,7 +273,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
       //LET'S WRITE SOME ASYMMETRY DATA HERE IF WE HAVE GOOD CYCLES.
       //IF(GDHELCYC > SKIPCYC) WE'VE SKIPPED THE SPECIFIED NUMBER OF CYCLES AFTER AN ANALYZING ERROR
       //FIXME: AM I SKIPPING CYCLES RIGHT?
-      if( gdhelcyc > skipcyc ){
+      if( gdhelcyc > 0 ){
         if(b_printascii) output << endl << "Recording data from good helicity cycle! :) " << endl;
         //STACK INDEX TO CALCULATE ASYMMETRY SHOULD BE (LAST WRITTEN HELICITY - CYCLE SIZE + 1)
         Int_t helindex = ((scalerctr-1)+deln)%stksz; //INDEX FOR HELICITY STACK
@@ -344,7 +344,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
           bcmsums[i] = 0;
         }
 
-	//REDUCE GDHELCYC BY 1 SO WE DON'T REPEAT AGAIN UNTIL THE NEXT COMPLETED CYCLE
+	      //REDUCE GDHELCYC BY 1 SO WE DON'T REPEAT AGAIN UNTIL THE NEXT COMPLETED CYCLE
         gdhelcyc--;
       }//END ASYMMETRY CALCULATION IF(GDHELCYC > SKIPCYC)
 
