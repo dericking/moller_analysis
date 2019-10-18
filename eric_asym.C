@@ -198,7 +198,6 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   TGraph * gr_polar = new TGraph();
    gr_polar->SetTitle("Polarizaton; Polarization at Entry$");
    gr_polar->SetMarkerStyle(6);
-  Int_t ratectr = 1;
   TGraph * gr_slrat = new TGraph();
    gr_slrat->SetTitle("Left Singles Rate; Left Singles Rate at Entry$");
    gr_slrat->SetMarkerStyle(6);
@@ -373,7 +372,6 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
       // CALCULATE THE INCREMENTS AND HELICITY OF THE CURRENT ENTRY$
       prevbcm  = currbcm;
       currbcm  = isca[4];
-      //gr_charg->SetPoint(scalerctr+1,scalerctr,currbcm);
       gr_charg->SetPoint(scalerctr+1,jentry,currbcm);
       Int_t beaminc = currbcm - prevbcm;       //CALCULATE BEAM CHARGE INCREMENTS
       b_beamon = false;
@@ -383,9 +381,13 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
       } else if(beaminc < 0){
         gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
         errcnts[5]++;
+        b_beamon = false;
+        scalerctr--;
       } else {
         gdhelcyc = -1*skipcyc;                 //RESET GOOD CYCLES SKIP NEXT FEW
         errcnts[2]++;                          //RECORD INCIDENT OF BCM COUNT TOO LOW ERROR
+        b_beamon = false;
+        scalerctr--;
       }
 
       prevLeft = currLeft;                     //CALCULATE LEFT SINGLES INCREMENTS
