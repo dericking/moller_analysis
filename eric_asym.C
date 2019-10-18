@@ -287,6 +287,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
         Int_t stackindex = helindex - heln + 1;
         if(stackindex < 0) stackindex += stksz;
         if(b_printascii) output << "  --> Starting Stack Index: " << stackindex << endl;
+        Bool_t b_beamokay = true;
         for(Int_t i = 0; i < heln; i++){
           //Check for proper pattern
           Bool_t helpattok = false;
@@ -295,6 +296,9 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
             output << "    --> Index: " << std::setw(3) << stackindex;
             output << ", helicity: " << std::setw(2) << helstate;
           }
+          //CHECK BEAM INCREMENTS IF ANY ARE ZERO SET b_beamokay TO FALSE AND BREAK
+          if( bcmstack[ stackindex ] <= 0 ) b_beamokay = false;
+          if(!b_beamokay) break;
           //SUM UP THE INCREMENTS FOR EACH HELICITY STATE
           helsumu[ helstate ] += coincstk[ stackindex ];
           helsumc[ helstate ] += coincstk[ stackindex ] - accstack[ stackindex ];
@@ -328,8 +332,8 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
         hcycrec++;
         //(5) FILL ASYM:ENTRY$, POL:ENTRY$, TODO: QASYM:ENTRY$ GRAPHS
         gr_asymm->SetPoint(hcycrec,jentry-skipcyc*HELN-HELN,asymc);
+        cout << "entry: " << jentry-skipcyc*HELN-HELN << "  asym: " << asymc << "  --  " << dhelsumc[0] << " , " << dhelsumc[1] << "  --  " << bcmsums[0] << ", " << bcmsums[1] << endl;
         gr_polar->SetPoint(hcycrec,jentry-skipcyc*HELN-HELN,(asymc/(ptar*anpow)));
-        //gr_qasym->SetPoint(hcycrec,jentry-skipcyc*HELN-HELN,/*FIXME:*/);
 
         //PRINT OUT THE SUMS AND CALCULATED ASYMMETRIES
         if(b_printascii){
@@ -370,39 +374,60 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
       // CALCULATE THE INCREMENTS AND HELICITY OF THE CURRENT ENTRY$
       prevbcm  = currbcm;
       currbcm  = isca[4];
-      gr_charg->SetPoint(scalerctr+1,scalerctr,currbcm);
-      Int_t beaminc = currbcm - prevbcm;      //CALCULATE BEAM CHARGE INCREMENTS
+      //gr_charg->SetPoint(scalerctr+1,scalerctr,currbcm);
+      gr_charg->SetPoint(scalerctr+1,jentry,currbcm);
+      Int_t beaminc = currbcm - prevbcm;       //CALCULATE BEAM CHARGE INCREMENTS
+      b_beamon = false;
       if(beaminc > 10){
         H[4]->Fill(beaminc);
+        b_beamon = true;
+      } else if(beaminc < 0){
+        gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
+        errcnts[5]++;
       } else {
-        beaminc    =  0;                      //NO BEAM; RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
-        gdhelcycle = -1*skipcyc;              //RESET GOOD CYCLES SKIP NEXT FEW
-        errcnts[2]++;                         //RECORD INCIDENT OF BCM COUNT TOO LOW ERROR
+        gdhelcyc = -1*skipcyc;                 //RESET GOOD CYCLES SKIP NEXT FEW
+        errcnts[2]++;                          //RECORD INCIDENT OF BCM COUNT TOO LOW ERROR
       }
 
-      prevLeft = currLeft;                    //CALCULATE LEFT SINGLES INCREMENTS
+      prevLeft = currLeft;                     //CALCULATE LEFT SINGLES INCREMENTS
       currLeft = isca[0];
-      if(beaminc != 0) gr_singl->SetPoint(scalerctr+1,scalerctr,currLeft);
+      if(b_beamon) gr_singl->SetPoint(scalerctr+1,jentry,currLeft);
       Int_t leftinc = currLeft - prevLeft;
-      if(beaminc != 0) H[0]->Fill(leftinc);
+      if(leftinc < 0){
+        errcnts[3]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
+        gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
+      }
+      if(b_beamon) H[0]->Fill(leftinc);
 
       prevRght = currRght;    	       	       //CALCULATE RIGHT SINGLES INCREMENTS
       currRght = isca[1];
-      if(beaminc != 0) gr_singr->SetPoint(scalerctr+1,scalerctr,currRght);
+      if(b_beamon) gr_singr->SetPoint(scalerctr+1,jentry,currRght);
       Int_t rightinc = currRght - prevRght;
-      if(beaminc != 0) H[1]->Fill(rightinc);
+      if(rightinc < 0){
+        errcnts[4]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
+        gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
+      }
+      if(b_beamon) H[1]->Fill(rightinc);
 
       prevCoin = currCoin;    	       	       //CALCULATE COINCIDENCE INCREMENTS
       currCoin = isca[2];
-      if(beaminc != 0) gr_coinc->SetPoint(scalerctr+1,scalerctr,currCoin);
+      if(b_beamon) gr_coinc->SetPoint(scalerctr+1,jentry,currCoin);
       Int_t coininc = currCoin - prevCoin;
-      if(beaminc != 0) H[2]->Fill(coininc);
+      if(coininc < 0){
+        errcnts[6]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
+        gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
+      }
+      if(b_beamon) H[2]->Fill(coininc);
 
       prevAccd = currAccd;    	       	       //CALCULATE ACCIDNENTAL INCREMENTS
       currAccd = isca[3];
-      if(beaminc != 0) gr_accid->SetPoint(scalerctr+1,scalerctr,currAccd);
+      if(b_beamon) gr_accid->SetPoint(scalerctr+1,jentry,currAccd);
       Int_t accdinc = currAccd - prevAccd;
-      if(beaminc != 0) H[3]->Fill(accdinc);
+      if(accdinc < 0){
+        errcnts[7]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
+        gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
+      }
+      if(b_beamon) H[3]->Fill(accdinc);
 
       currshel = isca[9] - previsca9;          //CALCULATE HELICITY FROM SCALERS COMPARE TO ITRIG[5]
       if(currshel > 0) currshel /= currshel;
@@ -416,7 +441,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
         errcnts[1]++;                          //ERROR TRIGGER/SCALER HELICITY MISMATCH
       }
       previsca9 = isca[9];                     //SAVE THE PREVIOUS ISCA[9] TO GET NEXT HELICITY FROM SCALER
-      if(beaminc != 0 && coininc > 0){
+      if(b_beamon && prevCoin > 0){
         gr_cnrat->SetPoint(scalerctr+1,jentry,(Double_t)coininc*freq);
         gr_slrat->SetPoint(scalerctr+1,jentry,(Double_t)leftinc*freq);
         gr_srrat->SetPoint(scalerctr+1,jentry,(Double_t)rightinc*freq);
