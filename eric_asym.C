@@ -9,11 +9,22 @@
 //******************************************************************************
 
 #include<TROOT.h>
+#include<TFile.h>
+#include<TTree.h>
+#include<TH1.h>
+#include<TF1.h>
+#include<TGraph.h>
 #include<TBranch.h>
 #include<TString.h>
+#include<TCanvas.h>
+#include<TPaveStats.h>
+#include<TStyle.h>
 #include<vector>
 #include<algorithm>
 #include<iterator>
+#include<iostream>
+#include<sstream>
+#include<fstream>
 
 Bool_t isnonnum(char c){
   return !(c >= '0' && c <= '9');
