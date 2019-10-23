@@ -655,6 +655,17 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
 
 
   //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // PRINT ERRORS
+  ofstream esummary;
+  std::stringstream sseof;
+  sseof << "errors_" << RUNN << ".txt";
+  cout << "writing summary to file name: " << (ssof.str()).c_str() << endl;
+  esummary.open( (sseof.str()).c_str() );
+  esummary << "Reasons/Errors for Cycles Discarded: " << endl;
+  for(Int_t i = 0; i <= ne; i++) esummary << "  " << (*errname)[i] << ": " << errcnts[i] << endl;
+
+
+  //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //SAVE TO PDF - 'sSaveFirstPage' FIRST PAGE, 'sSaveMiddlePage' FOR MIDDLE PAGES, 'sSaveLastPage' FOR LAST PAGE
   TString sSaveFirstPage("");
   sSaveFirstPage.Form("analysis_%i.pdf(",RUNN);
@@ -673,13 +684,15 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   cGrAsymmtry->SaveAs(sSaveMiddlePage);
   cGrPolarizn->SaveAs(sSaveLastPage);
 
-
-  //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-  // PRINT ERRORS
-  cout << "Reasons/Errors for Cycles Discarded: " << endl;
-  for(Int_t i = 0; i <= ne; i++) cout << "  " << (*errname)[i] << ": " << errcnts[i] << endl;
-
-
+  cScalers->SaveAs(     Form( "00_analysis_%i_scalers_graphs.png",RUNN) );
+  cIncrements->SaveAs(  Form( "01_analysis_%i_increments_hists.png",RUNN) );
+  cAsymmetries->SaveAs( Form( "02_analysis_%i_asymmetry_hists.png",RUNN) );
+  cGrCoinRate->SaveAs(  Form( "03_analysis_%i_coin_rate_graph.png",RUNN) );
+  cGrLeftRate->SaveAs(  Form( "04_analysis_%i_left_rate_graph.png",RUNN) );
+  cGrRghtRate->SaveAs(  Form( "05_analysis_%i_right_rate_graph.png",RUNN) );
+  cGrAccdRate->SaveAs(  Form( "06_analysis_%i_accidental_rate_graph.png",RUNN) );
+  cGrAsymmtry->SaveAs(  Form( "07_analysis_%i_asymmetry_over_time_graph.png",RUNN) );
+  cGrPolarizn->SaveAs(  Form( "08_analysis_%i_polarization_over_time_graph.png",RUNN) );
 
 
   if(b_printascii) output.close();
