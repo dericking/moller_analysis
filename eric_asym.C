@@ -376,7 +376,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
       currbcm  = isca[4];
       gr_charg->SetPoint(scalerctr+1,jentry,currbcm);
       Int_t beaminc = currbcm - prevbcm;       //CALCULATE BEAM CHARGE INCREMENTS
-      b_beamon = false;
+      Bool_t b_beamon = false;
       if(beaminc > 10){
         H[4]->Fill(beaminc);
         b_beamon = true;
