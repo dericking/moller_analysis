@@ -167,7 +167,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   H[2] = new TH1F("inc_coinc", Form("Coincidence Increments - Run %i",RUNN),  i_incrbin,  0, i_incrmax);
   H[3] = new TH1F("inc_accid", Form("Accidental Increments - Run %i",RUNN),   i_incrbin,  0, i_incrmax);
   H[4] = new TH1F("inc_bcm_q", Form("Beam Charge Increments - Run %i",RUNN),  i_incrbin,  0, i_incrmax);
-  Int_t asymbin = 800;
+  Int_t asymbin = 500;
   Int_t asymmin =  -1;
   Int_t asymmax =   1;
   H[5] = new TH1F("asym_uncr", Form("Uncorrected Asym Distro - Run %i",RUNN), asymbin, asymmin, asymmax);
@@ -444,12 +444,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
         errcnts[1]++;                          //ERROR TRIGGER/SCALER HELICITY MISMATCH
       }
       previsca9 = isca[9];                     //SAVE THE PREVIOUS ISCA[9] TO GET NEXT HELICITY FROM SCALER
-
-      //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-      // FILL IN THE INSTANEOUS RATE GRAPHS
       if(gdhelcyc >= 0){
-        cout << "rate point number: " << scalerctr+1 << ", rate entry$: " << jentry << endl;
-        cout << "  prev coin: " << prevCoin << ", currCoin: " << currCoin << ", coinRate: " << (Double_t)coininc*freq << endl;
         gr_cnrat->SetPoint(scalerctr+1,jentry,(Double_t)coininc*freq);
         gr_slrat->SetPoint(scalerctr+1,jentry,(Double_t)leftinc*freq);
         gr_srrat->SetPoint(scalerctr+1,jentry,(Double_t)rightinc*freq);
@@ -632,7 +627,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   // SAVE RUN DATA SUMMARY -- RUN,SINGL,SINGR,COINC,ACCID,BCM,ASYM,ASYMERR,POL,POLERR
   ofstream summary;
   std::stringstream ssof;
-  ssof << "finalStats_" << RUNN << ".txt";
+  ssof << "final_stats_" << RUNN << ".txt";
   cout << "summary file name: " << (ssof.str()).c_str() << endl;
   summary.open( (ssof.str()).c_str() );
   Int_t lrat = (Int_t)(fitgrlrat->GetParameter(0) );
@@ -640,8 +635,10 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   Int_t crat = (Int_t)(fitgrcrat->GetParameter(0) );
   Int_t arat = (Int_t)(fitgrarat->GetParameter(0) );
   Int_t qrat = (Int_t)(H[4]->GetMean() * FREQ);
-  Double_t aavg = fit5->GetParameter(1);
-  Double_t aerr = fit5->GetParError(1);
+  //Double_t aavg = fit5->GetParameter(1);
+  Double_t aavg = fitgrasym->GetParameter(0);
+  //Double_t aerr = fit5->GetParError(1);
+  Double_t aerr = fitgrasym->GetParError(0);
   Double_t pavg = fitgrpolr->GetParameter(0);
   Double_t perr = fitgrpolr->GetParError(0);
   summary << std::setw(5) << RUNN << "  "
