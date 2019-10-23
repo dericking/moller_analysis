@@ -588,14 +588,12 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   gr_asymm->Draw("AP");
   gr_asymm->Fit("pol0");
   TF1 * fitgrasym = gr_asymm->GetFunction("pol0");
-  fitgrasym->SetParNames(0,"Mean");
   gr_asymm->Draw("AP");
 
   TCanvas * cGrPolarizn = new TCanvas("cGrPolarizn","cGrPolarizn",1200,400);
   gr_polar->Draw("AP");
   gr_polar->Fit("pol0");
   TF1 * fitgrpolr = gr_polar->GetFunction("pol0");
-  fitgrpolr->SetParNames(0,"Mean");
   gr_polar->Draw("AP");
 
   TCanvas * cGrCoinRate = new TCanvas("cGrCoinRate","cGrCoinRate",1200,400);
