@@ -626,7 +626,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   ofstream summary;
   std::stringstream ssof;
   ssof << "final_stats_" << RUNN << ".txt";
-  cout << "summary file name: " << (ssof.str()).c_str() << endl;
+  cout << "writing stats summary to file name: " << (ssof.str()).c_str() << endl;
   summary.open( (ssof.str()).c_str() );
   Int_t lrat = (Int_t)(fitgrlrat->GetParameter(0) );
   Int_t rrat = (Int_t)(fitgrrrat->GetParameter(0) );
@@ -654,13 +654,17 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
 
   //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // PRINT ERRORS
-  ofstream esummary;
+  ofstream errorsummary;
   std::stringstream sseof;
   sseof << "errors_" << RUNN << ".txt";
-  cout << "writing summary to file name: " << (ssof.str()).c_str() << endl;
-  esummary.open( (sseof.str()).c_str() );
-  esummary << "Reasons/Errors for Cycles Discarded: " << endl;
-  for(Int_t i = 0; i <= ne; i++) esummary << "  " << (*errname)[i] << ": " << errcnts[i] << endl;
+  cout << "writing error summary to file name: " << (sseof.str()).c_str() << endl;
+  errorsummary.open( (sseof.str()).c_str() );
+  errorsummary << "Reasons/Errors for Cycles Discarded: " << endl;
+  for(Int_t j = 0; j <= ne; j++){
+    if( j >= ne ) break;  //SAFETY STATEMENT, WAS CROSSING 'ne' FOR SOME REASON.
+    errorsummary << "  " << (*errname)[j] << ": " << errcnts[j] << endl;
+  }
+  errorsummary.close();
 
 
   //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
