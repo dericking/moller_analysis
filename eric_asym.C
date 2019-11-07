@@ -151,7 +151,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // CYCLE TOSSING
   // WHEN YOU ADD AN ERROR -- INCREMENT 'ne', GIVE IT A NAME IN 'errname' (for printout)
-  const Int_t ne = 8;
+  const Int_t ne = 11;
   Int_t errcnts[ne];
   for(Int_t i = 0; i < ne; i++) errcnts[i] = 0;
   const char * errname[ne][100] = {"Incomplete Cycle",
@@ -161,7 +161,10 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
                                    "Negative Singles Right Increment",
                                    "Negative BCM Increment",
                                    "Negative Coincidence Increment",
-                                   "Negative Accidentals Increment"
+                                   "Negative Accidentals Increment",
+				   "Negative Singles Left Increment Scaler 2",
+				   "Negative Singles Right Inrcement Scaler 2",
+				   "Negative Clock Increment"
                                    };
 
 
@@ -169,7 +172,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   // HISTOGRAMS :: KEEP NHIST UPDATED FOR PRINTING AT END.
   // WHEN YOU ADD HISTOGRAM INCREMEMNT 'nhist1' AND ADD HISTOGRAM TO ARRAY
   // FOR TH2D DO THE SAME THING
-  const Int_t nhist1 = 7;
+  const Int_t nhist1 = 12;
   TH1F * H[nhist1];
   Int_t i_incrbin = 10000;
   Int_t i_incrmax = 10000;
@@ -178,12 +181,16 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   H[2] = new TH1F("inc_coinc", Form("Coincidence Increments - Run %i",RUNN),  i_incrbin,  0, i_incrmax);
   H[3] = new TH1F("inc_accid", Form("Accidental Increments - Run %i",RUNN),   i_incrbin,  0, i_incrmax);
   H[4] = new TH1F("inc_bcm_q", Form("Beam Charge Increments - Run %i",RUNN),  i_incrbin,  0, i_incrmax);
+  H[7] = new TH1F("inc_sng_l_Sc2", Form("Single Left Increments Scaler 2 - Run %i",RUNN),  i_incrbin,  0, i_incrmax);
+  H[8] = new TH1F("inc_sng_r_Sc2", Form("Single Right Increments Scaler 2 - Run %i",RUNN), i_incrbin,  0, i_incrmax);
+  H[9] = new TH1F("Diff_Scal_L", Form("Single Left Increments difference (Scaler 1 - Scaler 2) - Run %i", RUNN), i_incrbin, 0, i_incrmax);
+  H[10] = new TH1F("Diff_Scal_R", Form("Single Right Increments difference (Scaler 1 - Scaler 2) - Run %i", RUNN), i_incrbin, 0, i_incrmax);
   Int_t asymbin = 500;
   Int_t asymmin =  -1;
   Int_t asymmax =   1;
   H[5] = new TH1F("asym_uncr", Form("Uncorrected Asym Distro - Run %i",RUNN), asymbin, asymmin, asymmax);
   H[6] = new TH1F("asym_corr", Form("Corrected Asym Distro - Run %i",RUNN),   asymbin, asymmin, asymmax);
-
+  H[11] = new TH1F("clockinc", Form("Clock Increments - Run %i", RUNN), 10000,0,10000);
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //GRAPHS USED FOR PLOTTING SCALERS
@@ -193,6 +200,12 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   TGraph * gr_singr = new TGraph();
    gr_singr->SetTitle("Right Singles Scaler;Entry$");
    gr_singr->SetMarkerStyle(6);
+  TGraph * gr_singl2 = new TGraph();
+   gr_singl2->SetTitle("Left Singles Scaler 2;Entry$");
+   gr_singl2->SetMarkerStyle(6);
+  TGraph * gr_singr2 = new TGraph();
+   gr_singr2->SetTitle("Right Singles Scaler 2;Entry$");
+   gr_singr2->SetMarkerStyle(6);
   TGraph * gr_coinc = new TGraph();
    gr_coinc->SetTitle("Coincidence Scaler;Entry$");
    gr_coinc->SetMarkerStyle(6);
@@ -226,10 +239,14 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //VALUES USED IN CALCULATIONS ... SHOULD PROBABLY MOVE STACKS DOWN HERE
-  Int_t prevLeft  = 0;             //USED TO CALCULATE SINGLE LEFT INCREMENTS
-  Int_t prevRght  = 0;             //USED TO CALCULATE SINGLE RIGHT INCREMENTS
-  Int_t currLeft  = 0;             //USED TO CALCULATE SINGLE LEFT INCREMENTS
-  Int_t currRght  = 0;             //USED TO CALCULATE SINGLE RIGHT INCREMENTS
+  Int_t prevLeft = 0;             //USED TO CALCULATE SINGLE LEFT INCREMENTS
+  Int_t prevRght = 0;             //USED TO CALCULATE SINGLE RIGHT INCREMENTS
+  Int_t currLeft = 0;             //USED TO CALCULATE SINGLE LEFT INCREMENTS
+  Int_t currRght = 0;             //USED TO CALCULATE SINGLE RIGHT INCREMENTS
+  Int_t currLeft2 = 0;            //Same for 2nd Scaler
+  Int_t currRght2 = 0;
+  Int_t prevLeft2 = 0;
+  Int_t prevRght2 = 0;
   Int_t currCoin  = 0;             //USED TO COINCIDENCE INCREMENTS
   Int_t prevCoin  = 0;             //USED TO COINCIDENCE INCREMENTS
   Int_t prevAccd  = 0;             //USED TO ACCIDENTAL INCREMENTS
@@ -241,6 +258,9 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   Int_t prevthel  = -1;            //PREVIOUS HELICITY FROM TRIGGER
   Int_t currshel  = -1;            //CURRENT HELICITY FROM SCALERS
   Int_t previsca9 = 0;             //KEEPS TRACK OF ISCA[9] SO THAT WE CAN GET HELICITY FROM SCALER DATA
+
+  Int_t prevClock = 0 ;            // CLOCK INCREMENTS 
+  Int_t currClock = 0 ;
 
   Int_t currcnt   = 0;             //CURRENT COIN SCALER
   Int_t prevcnt   = 0;             //PREVIOUS COIN SCALER
@@ -413,6 +433,18 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
       }
       if(b_beamon) H[0]->Fill(leftinc);
 
+      prevLeft2 = currLeft2;                     //CALCULATE LEFT SINGLES INCREMENTS 2ND SCALER
+      currLeft2 = isca[16];
+      if(b_beamon) gr_singl2->SetPoint(scalerctr+1,jentry,currLeft2);
+      Int_t leftinc2 = currLeft2 - prevLeft2;
+      if(leftinc2 < 0){
+        errcnts[8]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
+        gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
+      }
+      if(b_beamon) H[7]->Fill(leftinc2);
+
+      if(b_beamon) H[9]->Fill(leftinc-leftinc2); // SCALER 1 - SCALER 2 LEFT INCREMENTS DIFFERENCE
+
       prevRght = currRght;    	       	       //CALCULATE RIGHT SINGLES INCREMENTS
       currRght = isca[1];
       if(b_beamon) gr_singr->SetPoint(scalerctr+1,jentry,currRght);
@@ -422,6 +454,26 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
         gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
       }
       if(b_beamon) H[1]->Fill(rightinc);
+
+      prevRght2 = currRght2;    	       	       //CALCULATE RIGHT SINGLES INCREMENTS
+      currRght2 = isca[17];
+      if(b_beamon) gr_singr2->SetPoint(scalerctr+1,jentry,currRght2);
+      Int_t rightinc2 = currRght2 - prevRght2;
+      if(rightinc2 < 0){
+        errcnts[9]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
+        gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
+      }
+      if(b_beamon) H[8]->Fill(rightinc2);
+
+      if(b_beamon) H[10]->Fill(rightinc-rightinc2); // SCALER 1 - SCALER 2 RIGHT INCREMENT DIFFERENCE
+     
+      prevClock = currClock;                   
+      currClock = isca[14];
+      Int_t clockinc = currClock - prevClock;    // CALCULATE CLOCK INCREMENTS
+      if(clockinc < 0){
+        errcnts[10]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
+        gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
+      if(b_beamon) H[11]->Fill(clockinc);
 
       prevCoin = currCoin;    	       	       //CALCULATE COINCIDENCE INCREMENTS
       currCoin = isca[2];
@@ -534,9 +586,9 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   //FITTING AND PLOTTING
   gStyle->SetOptFit(111);
 
-
+  
   TCanvas * cScalers = new TCanvas("cScalers","cScalers",1200,800);
-  cScalers->Divide(3,2);
+  cScalers->Divide(3,3);
   cScalers->cd(1);
   gr_singl->Draw("AP");
   cScalers->cd(2);
@@ -547,6 +599,11 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   gr_coinc->Draw("AP");
   cScalers->cd(5);
   gr_accid->Draw("AP");
+  cScalers->cd(6);
+  gr_singl2->Draw("AP");
+  cScalers->cd(7);
+  gr_singr2->Draw("AP");
+  
 
   TCanvas * cIncrements = new TCanvas("cIncrements","cIncrements",1200,800);
   Int_t sidebuff = 100;
@@ -570,11 +627,34 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   cIncrements->cd(5);
   H[3]->GetXaxis()->SetRangeUser(H[3]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[3]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[3]->Draw();
+  
+  //
+  TCanvas * cIncrements2 = new TCanvas("cIncrements2","cIncrements2",1200,800);
+  cIncrements->Divide(3,2);
+  cIncrements->cd(1)->SetLogy();
+  H[7]->GetXaxis()->SetRangeUser(H[7]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[7]->FindLastBinAbove ( 0. , 1 )+sidebuff);
+  H[7]->Draw();
+  //
+  cIncrements->cd(2)->SetLogy();
+  H[8]->GetXaxis()->SetRangeUser(H[8]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[8]->FindLastBinAbove ( 0. , 1 )+sidebuff);
+  H[8]->Draw();
 
+  cIncrements->cd(3)->SetLogy();
+  H[9]->GetXaxis()->SetRangeUser(H[9]->FindFirstBinAbove( 0. , 1 )-5,H[9]->FindLastBinAbove ( 0. , 1 )+5);
+  H[9]->Draw();
 
+  cIncrements->cd(4)->SetLogy();
+  H[10]->GetXaxis()->SetRangeUser(H[10]->FindFirstBinAbove( 0. , 1 )-10,H[10]->FindLastBinAbove ( 0. , 1 )+10);
+  H[10]->Draw();
+
+  cIncrements->cd(5)->SetLogy();
+  H[11]->GetXaxis()->SetRangeUser(H[11]->FindFirstBinAbove( 0. , 1 )-400,H[11]->FindLastBinAbove ( 0. , 1 )+400);
+  H[11]->Draw();
+  
   TCanvas * cAsymmetries = new TCanvas("cAsymmetries","cAsymmetries",1200,400);
   Double_t bufffact = 0.1;
   cAsymmetries->Divide(2,1);
+ 
   cAsymmetries->cd(1);
   H[5]->Draw();
   H[5]->Fit("gaus");
@@ -584,6 +664,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
                                   (((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin*(Double_t)H[5]->FindLastBinAbove (0,1)*(1+bufffact)+(Double_t)asymmin)
                                 );
   H[5]->Draw();
+  
   //
   cAsymmetries->cd(2);
   H[6]->Draw();
@@ -594,7 +675,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
                                   (((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin*(Double_t)H[6]->FindLastBinAbove (0,1)*(1+bufffact)+(Double_t)asymmin)
                                 );
   H[6]->Draw();
-
+  
   TCanvas * cGrAsymmtry = new TCanvas("cGrAsymmtry","cGrAsymmtry",1200,400);
   gr_asymm->Draw("AP");
   gr_asymm->Fit("pol0");
@@ -662,7 +743,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
           << std::setw(7) << std::setprecision(4) << perr << "  " << endl;
   summary.close();
 
-
+  
   //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // PRINT ERRORS
   ofstream errorsummary;
@@ -689,6 +770,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
 
   cScalers->SaveAs(sSaveFirstPage);
   cIncrements->SaveAs(sSaveMiddlePage);
+  cIncrements2->SaveAs(sSaveMiddlePage);
   cAsymmetries->SaveAs(sSaveMiddlePage);
   cGrCoinRate->SaveAs(sSaveMiddlePage);
   cGrLeftRate->SaveAs(sSaveMiddlePage);
@@ -709,4 +791,5 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
 
 
   if(b_printascii) output.close();
+  }
 }
