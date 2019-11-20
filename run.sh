@@ -9,9 +9,9 @@
 
 #These will need to be changed.
 #Where to place the analysis results? Where to find the analysis data?
-RSLTDIR="/home/eric/moller_analysis/webpage/analysis"
+RSLTDIR="/adaqfs/home/moller/nikolaev/git_asym/moller_analysis/analysis"
 [ -d "${RSLTDIR}" ] && echo "Moller online analysis directory exists. Woohoo!!!" || mkdir ${RSLTDIR}
-FILEDIR="prexii_sample_data"
+FILEDIR="/adaqfs/home/moller/nikolaev/git_asym/moller_analysis"
 
 #remove any png from THIS directory.
 rm *.png

@@ -2,3 +2,5 @@
 *.root
 *.pdf
 *.out
+*.txt
+analysis/
