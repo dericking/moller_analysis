@@ -192,6 +192,9 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   H[6] = new TH1F("asym_corr", Form("Corrected Asym Distro - Run %i",RUNN),   asymbin, asymmin, asymmax);
   H[11] = new TH1F("clockinc", Form("Clock Increments - Run %i", RUNN), 10000,0,10000);
 
+  const Int_t nhist2 = 1;
+  TH2F * H2[nhist2];
+  H2[0] = new TH2F("bcm_vs_time", Form("BCM vs TIME - Run %i", RUNN), 24000, 0, 24000000, 40, 59, 121); // BCM vs TIME
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //GRAPHS USED FOR PLOTTING SCALERS
   TGraph * gr_singl = new TGraph();
@@ -270,7 +273,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   Int_t hcycrec   = 0;             //NUMBER OF HELICITY CYCLES FOR WHICH AN ASYMMETRY HAS BEEN RECORDED
   Int_t helflip   = -1;            //KEEPS TRACK OF CURRENT HELICITY FLIP IN EACH CYCLE
   Int_t skipcyc   =  3;            //NUMBER OF PREV CYCLES TO FUTURE CYCLES TO DISCARD AFTER ANALYSIS ERROR
-  Int_t disccyc   =  2;            //NUMBER OF FUTURE CYCLES TO DISCARD TO DISCARD AFTER ANALYSIS ERROR
+  Int_t disccyc   =  2;            //NUMBER OF FUTURE CYCLES TO DISCARD TO DISCARD AFTER AALYSIS ERROR
   Int_t gdhelcyc  = -1 * skipcyc;  //KEEPS TRACK OF GOOD HELICITY CYCLES SINCE LAST BAD.
 
   Double_t helsumu[2] = { 0 , 0 }; //UNCORRECTED HELICITY SUMS FOR EACH CYCLE [H0,H1]
@@ -473,8 +476,13 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
       if(clockinc < 0){
         errcnts[10]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
         gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
+      }
       if(b_beamon) H[11]->Fill(clockinc);
 
+      
+      if(b_beamon) H2[0]->Fill(currClock, beaminc); // BCM vs TIME
+
+      
       prevCoin = currCoin;    	       	       //CALCULATE COINCIDENCE INCREMENTS
       currCoin = isca[2];
       if(b_beamon) gr_coinc->SetPoint(scalerctr+1,jentry,currCoin);
@@ -603,7 +611,9 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   gr_singl2->Draw("AP");
   cScalers->cd(7);
   gr_singr2->Draw("AP");
-  
+
+  TCanvas * cBCMvsTIME = new TCanvas("cBCMvsTIME", "cBCMvsTIME", 1200, 800);
+  H2[0]->Draw();
 
   TCanvas * cIncrements = new TCanvas("cIncrements","cIncrements",1200,800);
   Int_t sidebuff = 100;
@@ -611,45 +621,46 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   cIncrements->cd(1);
   H[0]->GetXaxis()->SetRangeUser(H[0]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[0]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[0]->Draw();
-  //
+  
   cIncrements->cd(2);
   H[1]->GetXaxis()->SetRangeUser(H[1]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[1]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[1]->Draw();
-  //
-  cIncrements->cd(3);
+  
+  cIncrements->cd(3)->SetLogy();
   H[4]->GetXaxis()->SetRangeUser(H[4]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[4]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[4]->Draw();
-  //
+  
   cIncrements->cd(4);
   H[2]->GetXaxis()->SetRangeUser(H[2]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[2]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[2]->Draw();
-  //
+  
   cIncrements->cd(5);
   H[3]->GetXaxis()->SetRangeUser(H[3]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[3]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[3]->Draw();
   
-  //
+  
   TCanvas * cIncrements2 = new TCanvas("cIncrements2","cIncrements2",1200,800);
-  cIncrements->Divide(3,2);
-  cIncrements->cd(1)->SetLogy();
+  cIncrements2->Divide(3,2);
+  cIncrements2->cd(1)->SetLogy();
   H[7]->GetXaxis()->SetRangeUser(H[7]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[7]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[7]->Draw();
   //
-  cIncrements->cd(2)->SetLogy();
+  cIncrements2->cd(2)->SetLogy();
   H[8]->GetXaxis()->SetRangeUser(H[8]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[8]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[8]->Draw();
 
-  cIncrements->cd(3)->SetLogy();
+  cIncrements2->cd(3)->SetLogy();
   H[9]->GetXaxis()->SetRangeUser(H[9]->FindFirstBinAbove( 0. , 1 )-5,H[9]->FindLastBinAbove ( 0. , 1 )+5);
   H[9]->Draw();
 
-  cIncrements->cd(4)->SetLogy();
+  cIncrements2->cd(4)->SetLogy();
   H[10]->GetXaxis()->SetRangeUser(H[10]->FindFirstBinAbove( 0. , 1 )-10,H[10]->FindLastBinAbove ( 0. , 1 )+10);
   H[10]->Draw();
 
-  cIncrements->cd(5)->SetLogy();
+  cIncrements2->cd(5)->SetLogy();
   H[11]->GetXaxis()->SetRangeUser(H[11]->FindFirstBinAbove( 0. , 1 )-400,H[11]->FindLastBinAbove ( 0. , 1 )+400);
   H[11]->Draw();
+
   
   TCanvas * cAsymmetries = new TCanvas("cAsymmetries","cAsymmetries",1200,400);
   Double_t bufffact = 0.1;
@@ -771,6 +782,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   cScalers->SaveAs(sSaveFirstPage);
   cIncrements->SaveAs(sSaveMiddlePage);
   cIncrements2->SaveAs(sSaveMiddlePage);
+  cBCMvsTIME->SaveAs(sSaveMiddlePage);
   cAsymmetries->SaveAs(sSaveMiddlePage);
   cGrCoinRate->SaveAs(sSaveMiddlePage);
   cGrLeftRate->SaveAs(sSaveMiddlePage);
@@ -788,8 +800,8 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   cGrAccdRate->SaveAs(  Form( "06_analysis_%i_accidental_rate_graph.png",RUNN) );
   cGrAsymmtry->SaveAs(  Form( "07_analysis_%i_asymmetry_over_time_graph.png",RUNN) );
   cGrPolarizn->SaveAs(  Form( "08_analysis_%i_polarization_over_time_graph.png",RUNN) );
+  cIncrements2->SaveAs(  Form( "09_analysis_%i_increments2_hist.png", RUNN) );
 
 
   if(b_printascii) output.close();
   }
-}
