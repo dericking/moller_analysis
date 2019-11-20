@@ -257,8 +257,6 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   Int_t currbcm   = 0;             //USED TO CHARGE INCREMENTS
   Int_t prevbcm   = 0;             //USED TO CHARGE INCREMENTS
 
-  Int_t currthel  = -1;            //CURRENT HELICITY FROM TRIGGER
-  Int_t prevthel  = -1;            //PREVIOUS HELICITY FROM TRIGGER
   Int_t currshel  = -1;            //CURRENT HELICITY FROM SCALERS
   Int_t previsca9 = 0;             //KEEPS TRACK OF ISCA[9] SO THAT WE CAN GET HELICITY FROM SCALER DATA
 
