@@ -4,3 +4,5 @@
 *.out
 *.txt
 analysis/
+analysis*/
+moller_data_temp/
