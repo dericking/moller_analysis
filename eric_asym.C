@@ -42,6 +42,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   const Double_t freq       = (Double_t)FREQ; //HELICITY FREQUENCY
   const Double_t anpow      = 0.77301;        //ANALYZING POWER
   const Double_t ptar       = 0.08012;        //TARGET POLARIZATION
+  const Double_t bcmped     = 1;              //BCM PEDESTAL
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //STRIP RUN NUMBER FROM FILE NAME
@@ -407,7 +408,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
       prevbcm  = currbcm;
       currbcm  = isca[4];
       gr_charg->SetPoint(scalerctr+1,jentry,currbcm);
-      Int_t beaminc = currbcm - prevbcm;       //CALCULATE BEAM CHARGE INCREMENTS
+      Int_t beaminc = currbcm - prevbcm - bcmped;//CALCULATE BEAM CHARGE INCREMENTS
       Bool_t b_beamon = false;
       if(beaminc > 10){
         H[4]->Fill(beaminc);
