@@ -1,6 +1,7 @@
 #!/bin/bash
 
-source /adaqfs/apps/ROOT/pro/bin/thisroot.csh
+#Need if running on moller account
+#source /adaqfs/apps/ROOT/pro/bin/thisroot.csh
 
 #Where to store the results files.
 #RSLTDIR="/u/group/halla/www/hallaweb/html/equipment/moller/eric_asym/analysis"
@@ -8,9 +9,11 @@ RSLTDIR="analysis"
 [ -d "${RSLTDIR}" ] && echo "Moller online analysis directory exists. Woohoo!!!" || mkdir ${RSLTDIR}
 #does the files and date folder in the results directory exist?
 [ -d "${RSLTDIR}/files" ] && echo "Moller online analysis directory exists. Woohoo!!!" || mkdir "${RSLTDIR}/files"
-[ -d "${RSLTDIR}/date" ] && echo "Moller online analysis directory exists. Woohoo!!!" || mkdir "${RSLTDIR}/date"
+[ -d "${RSLTDIR}/date" ] && echo  "Moller online analysis directory exists. Woohoo!!!" || mkdir "${RSLTDIR}/date"
 #Where to find the data files
-FILEDIR="prexii_sample_data"
+FILEDIR="moller_data_temp"
+[ -d "${FILEDIR}" ] && echo  "Temporary directory for moller_data_NNNNN.nt and ROOT files exists. Nice!" || mkdir "${FILEDIR}"
+
 
 rm -f *.png
 rm -f *.pdf
@@ -27,9 +30,15 @@ fi
 echo "Starting analysis for ${START} to ${END}"
 
 for (( ANALRUN=$START; ANALRUN<=$END; ANALRUN++ )); do
-
-    ./copy_moller_data.sh ${ANALRUN}
-    h2root moller_data/moller_data_${ANALRUN}.nt
+    
+    #Check to see if the ntuple has already been converted to a root file. If so... nothing needed. Else, copy and convert.
+    if [[ -f "${FILEDIR}/moller_data_${ANALRUN}.root" && -f "${FILEDIR}/mollerrun_${ANALRUN}.set" ]]; then
+        echo "Needed data files exist..."
+    else
+        echo "Fetching needed datafiles..."
+        ./copy_moller_data.sh ${FILEDIR} ${ANALRUN} ${ANALRUN}
+        h2root ${FILEDIR}/moller_data_${ANALRUN}.nt  
+    fi
 
     echo "Analyzing run ${ANALRUN}"
 
