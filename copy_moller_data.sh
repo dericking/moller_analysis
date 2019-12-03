@@ -1,9 +1,5 @@
 #!/bin/bash
 
-#
-#Note: $FILEDIR should be the same in both this and run_analysis.sh; I'll pass that value at some later date
-#
-
 FILEDIR=$1
 
 STARTRUN=$2
