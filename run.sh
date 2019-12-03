@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ################################################################################
-##  THIS FILE WILL BE DELETED AFTER I'M CERTAIN THAT RUN_ANALYSIS.SH HAS NO ISSUES
+##  THIS FILE WILL BE DELETED AFTER I'M CERTAIN THAT RUN_ANALYSIS.SH HAS NO PROBLEMS
 
 ################################################################################
 ## FETCHES SETTINGS FILE AND DATA ROOT FILE
