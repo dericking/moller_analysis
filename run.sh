@@ -1,6 +1,9 @@
 #!/bin/bash
 
 ################################################################################
+##  THIS FILE WILL BE DELETED AFTER I'M CERTAIN THAT RUN_ANALYSIS.SH HAS NO PROBLEMS
+
+################################################################################
 ## FETCHES SETTINGS FILE AND DATA ROOT FILE
 ## TAKES ONE OR TWO ARGUMENTS -- IF ONE ANALYZES SINGLE FILE, IF TWO ANALYZES RANGE
 ## PROBABLY NEED TO INCLUDE SOME CHECKS TO AVOID ERRORS

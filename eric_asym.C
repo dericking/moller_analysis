@@ -50,7 +50,8 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //STRIP RUN NUMBER FROM FILE NAME
-  std::string fnamecopy = FILE;
+  std::string fnametrun = FILE.substr( FILE.find_last_of("\\/")+1 );
+  std::string fnamecopy = fnametrun;
   fnamecopy.erase(std::remove_if(fnamecopy.begin(),fnamecopy.end(),isnonnum),fnamecopy.end());
   stringstream ss;
   ss << fnamecopy;
@@ -167,9 +168,9 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
                                    "Negative BCM Increment",
                                    "Negative Coincidence Increment",
                                    "Negative Accidentals Increment",
-				   "Negative Singles Left Increment Scaler 2",
-				   "Negative Singles Right Inrcement Scaler 2",
-				   "Negative Clock Increment"
+                                   "Negative Singles Left Increment Scaler 2",
+                                   "Negative Singles Right Inrcement Scaler 2",
+                                   "Clock Increment Problem"
                                    };
 
 
@@ -206,47 +207,53 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //GRAPHS USED FOR PLOTTING SCALERS
   TGraph * gr_singl = new TGraph();
-   gr_singl->SetTitle("Left Singles Scaler;Entry$");
+   gr_singl->SetTitle( Form("Left Singles Scaler - Run %i;Entry",RUNN));
    gr_singl->SetMarkerStyle(6);
   TGraph * gr_singr = new TGraph();
-   gr_singr->SetTitle("Right Singles Scaler;Entry$");
+   gr_singr->SetTitle( Form("Right Singles Scaler - Run %i;Entry",RUNN));
    gr_singr->SetMarkerStyle(6);
   TGraph * gr_singl2 = new TGraph();
-   gr_singl2->SetTitle("Left Singles Scaler 2;Entry$");
+   gr_singl2->SetTitle( Form("Left Singles Scaler 2 - Run %i;Entry",RUNN));
    gr_singl2->SetMarkerStyle(6);
   TGraph * gr_singr2 = new TGraph();
-   gr_singr2->SetTitle("Right Singles Scaler 2;Entry$");
+   gr_singr2->SetTitle( Form("Right Singles Scaler 2 - Run %i;Entry",RUNN));
    gr_singr2->SetMarkerStyle(6);
   TGraph * gr_coinc = new TGraph();
-   gr_coinc->SetTitle("Coincidence Scaler;Entry$");
+   gr_coinc->SetTitle( Form("Coincidence Scaler - Run %i;Entry",RUNN));
    gr_coinc->SetMarkerStyle(6);
   TGraph * gr_accid = new TGraph();
-   gr_accid->SetTitle("Accidental Scaler;Entry$");
+   gr_accid->SetTitle( Form("Accidental Scaler - Run %i;Entry",RUNN));
    gr_accid->SetMarkerStyle(6);
   TGraph * gr_charg = new TGraph();
-   gr_charg->SetTitle("BCM Scaler;Entry$");
+   gr_charg->SetTitle( Form("BCM Scaler - Run %i;Entry",RUNN));
    gr_charg->SetMarkerStyle(6);
   TGraph * gr_asymm = new TGraph();
-   gr_asymm->SetTitle("Corrected Asymmetry;Helicity Cycle Beginning at Entry$");
+   gr_asymm->SetTitle( Form("Corrected Asymmetry - Run %i;Entry$",RUNN) );
    gr_asymm->SetMarkerStyle(6);
   TGraph * gr_qasym = new TGraph();
-   gr_qasym->SetTitle("Charge Asymmetry; Charge Asymmetry at Entry$");
+   gr_qasym->SetTitle( Form("Charge Asymmetry - Run %i;Entry$",RUNN) );
    gr_qasym->SetMarkerStyle(6);
+  TGraph * gr_bcmtm = new TGraph();
+   gr_bcmtm->SetTitle( Form("BCM Over Time - Run %i;Entry$",RUNN) );
+   gr_bcmtm->SetMarkerStyle(6);
   TGraph * gr_polar = new TGraph();
-   gr_polar->SetTitle("Polarizaton; Polarization at Entry$");
+   gr_polar->SetTitle( Form("Polarizaton - Run %i;Entry$",RUNN) );
    gr_polar->SetMarkerStyle(6);
   TGraph * gr_slrat = new TGraph();
-   gr_slrat->SetTitle("Left Singles Rate; Left Singles Rate at Entry$");
+   gr_slrat->SetTitle( Form("Left Singles Rate - Run %i;Entry$",RUNN) );
    gr_slrat->SetMarkerStyle(6);
   TGraph * gr_srrat = new TGraph();
-   gr_srrat->SetTitle("Right Singles Rate; Right Singles Rate at Entry$");
+   gr_srrat->SetTitle( Form("Right Singles Rate - Run %i;Entry$",RUNN) );
    gr_srrat->SetMarkerStyle(6);
   TGraph * gr_cnrat = new TGraph();
-   gr_cnrat->SetTitle("Coincidence Rate; Coincidence Rate at Entry$");
+   gr_cnrat->SetTitle( Form("Coincidence Rate - Run %i;Entry$",RUNN) );
    gr_cnrat->SetMarkerStyle(6);
   TGraph * gr_acrat = new TGraph();
-   gr_acrat->SetTitle("Accidentals Rate; Accidentals Rate at Entry$");
+   gr_acrat->SetTitle( Form("Accidentals Rate - Run %i;Entry$",RUNN) );
    gr_acrat->SetMarkerStyle(6);
+  TGraph * gr_clock = new TGraph();
+    gr_clock->SetTitle( Form("Clock over Time - Run %i;Entry$",RUNN) );
+    gr_clock->SetMarkerStyle(6);
 
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
@@ -269,8 +276,8 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   Int_t currshel  = -1;            //CURRENT HELICITY FROM SCALERS
   Int_t previsca9 = 0;             //KEEPS TRACK OF ISCA[9] SO THAT WE CAN GET HELICITY FROM SCALER DATA
 
-  Int_t prevClock = 0 ;            // CLOCK INCREMENTS
-  Int_t currClock = 0 ;
+  Int_t prevClock = 0 ;            //CLOCK INCREMENTS
+  Int_t currClock = 0 ;            //CLOCK INCREMENTS
 
   Int_t currcnt   = 0;             //CURRENT COIN SCALER
   Int_t prevcnt   = 0;             //PREVIOUS COIN SCALER
@@ -286,6 +293,9 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   Double_t helsumu[2] = { 0 , 0 }; //UNCORRECTED HELICITY SUMS FOR EACH CYCLE [H0,H1]
   Double_t helsumc[2] = { 0 , 0 }; //CORRECTED HELICITY SUMS FOR EACH CYCLE (ACCIDENTAL SUBTRACTED) [H0,H1]
   Double_t bcmsums[2] = { 0 , 0 }; //BCM SUMS FOR EACH CYCLE [H0,H1]
+
+  Double_t expclock = 0;           //EXPECTED CLOCK TIME WINDOW
+  expclock = ( 1./ freq ) * 97000 ;//100KHz CLOCK ASSUMES 3% DEADTIME, IF 240Hz LET'S DO 2% DEADTIME MAYBE(?)
 
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
@@ -397,7 +407,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
           bcmsums[i] = 0;
         }
 
-	      //REDUCE GDHELCYC BY 1 SO WE DON'T REPEAT AGAIN UNTIL THE NEXT COMPLETED CYCLE
+        //REDUCE GDHELCYC BY 1 SO WE DON'T REPEAT AGAIN UNTIL THE NEXT COMPLETED CYCLE
         gdhelcyc--;
       }//END ASYMMETRY CALCULATION IF(GDHELCYC > SKIPCYC)
 
@@ -414,117 +424,125 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
       }
 
 
-      //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-      // CALCULATE THE INCREMENTS AND HELICITY OF THE CURRENT ENTRY$
+    	//////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+    	// CALCULATE THE INCREMENTS AND HELICITY OF THE CURRENT ENTRY$
+      // TODO: GOING TO WANT TO MOVE ALL OF THE GRAPH AND HIST FILLING TO THE END OF THIS SECTION
       prevbcm  = currbcm;
       currbcm  = isca[4];
-      gr_charg->SetPoint(scalerctr+1,jentry,currbcm);
-      Int_t beaminc = currbcm - prevbcm;       //CALCULATE BEAM CHARGE INCREMENTS
-      Bool_t b_beamon = false;
-      if(beaminc > 10){
-        H[4]->Fill(beaminc);
-        b_beamon = true;
-      } else if(beaminc < 0){
-        gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
-        errcnts[5]++;
-        b_beamon = false;
-        scalerctr--;
-      } else {
-        gdhelcyc = -1*skipcyc;                 //RESET GOOD CYCLES SKIP NEXT FEW
-        errcnts[2]++;                          //RECORD INCIDENT OF BCM COUNT TOO LOW ERROR
-        b_beamon = false;
-        scalerctr--;
-      }
-
-      prevLeft = currLeft;                     //CALCULATE LEFT SINGLES INCREMENTS
-      currLeft = isca[0];
-      if(b_beamon) gr_singl->SetPoint(scalerctr+1,jentry,currLeft);
-      Int_t leftinc = currLeft - prevLeft;
-      if(leftinc < 0){
-        errcnts[3]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
-        gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
-      }
-      if(b_beamon) H[0]->Fill(leftinc);
-
-      prevLeft2 = currLeft2;                     //CALCULATE LEFT SINGLES INCREMENTS 2ND SCALER
-      currLeft2 = isca[16];
-      if(b_beamon) gr_singl2->SetPoint(scalerctr+1,jentry,currLeft2);
-      Int_t leftinc2 = currLeft2 - prevLeft2;
-      if(leftinc2 < 0){
-        errcnts[8]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
-        gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
-      }
-      if(b_beamon) H[7]->Fill(leftinc2);
-
-      if(b_beamon) H[9]->Fill(leftinc-leftinc2); // SCALER 1 - SCALER 2 LEFT INCREMENTS DIFFERENCE
-
-      prevRght = currRght;    	       	       //CALCULATE RIGHT SINGLES INCREMENTS
-      currRght = isca[1];
-      if(b_beamon) gr_singr->SetPoint(scalerctr+1,jentry,currRght);
-      Int_t rightinc = currRght - prevRght;
-      if(rightinc < 0){
-        errcnts[4]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
-        gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
-      }
-      if(b_beamon) H[1]->Fill(rightinc);
-
-      prevRght2 = currRght2;    	       	       //CALCULATE RIGHT SINGLES INCREMENTS
-      currRght2 = isca[17];
-      if(b_beamon) gr_singr2->SetPoint(scalerctr+1,jentry,currRght2);
-      Int_t rightinc2 = currRght2 - prevRght2;
-      if(rightinc2 < 0){
-        errcnts[9]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
-        gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
-      }
-      if(b_beamon) H[8]->Fill(rightinc2);
-
-      if(b_beamon) H[10]->Fill(rightinc-rightinc2); // SCALER 1 - SCALER 2 RIGHT INCREMENT DIFFERENCE
+    	Int_t beaminc = currbcm - prevbcm;       //CALCULATE BEAM CHARGE INCREMENTS
+    	Bool_t b_beamon = false;
+    	if(beaminc > 10){
+    	  b_beamon = true;
+    	} else if(beaminc < 0){
+    	  gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
+    	  errcnts[5]++;
+    	  b_beamon = false;
+    	  scalerctr--;
+    	} else {
+    	  gdhelcyc = -1*skipcyc;                 //RESET GOOD CYCLES SKIP NEXT FEW
+    	  errcnts[2]++;                          //RECORD INCIDENT OF BCM COUNT TOO LOW ERROR
+    	  b_beamon = false;
+    	  scalerctr--;
+    	}
 
       prevClock = currClock;
       currClock = isca[14];
-      Int_t clockinc = currClock - prevClock;    // CALCULATE CLOCK INCREMENTS
-      if(clockinc < 0){
+      Int_t clockinc = currClock - prevClock;   // CALCULATE CLOCK INCREMENTS
+      Bool_t b_clockgood = true;
+      if( (clockinc < (expclock*0.95) || clockinc > (expclock*1.05) ) ){
         errcnts[10]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
-        gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
+        gdhelcyc = -1*skipcyc;                  //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
+        b_clockgood = false;                    //BAD CLOCK SAME AS BAD BEAM,
+        if(!b_clockgood) b_beamon = false;      //LET'S NOT PLOT THE INCREMENTS
+        scalerctr--;
       }
+
+      //Moved these to after both beam and clock are checked, eventually all must be moved.
+      if(b_beamon) H[4]->Fill(beaminc);
+      if(b_beamon) gr_charg->SetPoint(scalerctr+1,jentry,currbcm);
+      if(b_beamon) gr_clock->SetPoint(scalerctr+1,jentry,clockinc);
       if(b_beamon) H[11]->Fill(clockinc);
+    	//if(b_beamon) H2[0]->Fill(currClock, beaminc); //DEPRICATED BY ERIC - USE TGRAPH OVER ENTRY
 
+    	prevLeft = currLeft;                     //CALCULATE LEFT SINGLES INCREMENTS
+    	currLeft = isca[0];
+    	if(b_beamon) gr_singl->SetPoint(scalerctr+1,jentry,currLeft);
+    	Int_t leftinc = currLeft - prevLeft;
+    	if(leftinc < 0){
+    	  errcnts[3]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
+    	  gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
+    	}
+    	if(b_beamon) H[0]->Fill(leftinc);
 
-      if(b_beamon) H2[0]->Fill(currClock, beaminc); // BCM vs TIME
+    	prevLeft2 = currLeft2;                     //CALCULATE LEFT SINGLES INCREMENTS 2ND SCALER
+    	currLeft2 = isca[16];
+    	if(b_beamon) gr_singl2->SetPoint(scalerctr+1,jentry,currLeft2);
+    	Int_t leftinc2 = currLeft2 - prevLeft2;
+    	if(leftinc2 < 0){
+    	  errcnts[8]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
+    	  gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
+    	}
+    	if(b_beamon) H[7]->Fill(leftinc2);
 
+    	if(b_beamon) H[9]->Fill(leftinc-leftinc2); // SCALER 1 - SCALER 2 LEFT INCREMENTS DIFFERENCE
 
-      prevCoin = currCoin;    	       	       //CALCULATE COINCIDENCE INCREMENTS
-      currCoin = isca[2];
-      if(b_beamon) gr_coinc->SetPoint(scalerctr+1,jentry,currCoin);
-      Int_t coininc = currCoin - prevCoin;
-      if(coininc < 0){
-        errcnts[6]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
-        gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
-      }
-      if(b_beamon) H[2]->Fill(coininc);
+    	prevRght = currRght;    	       	       //CALCULATE RIGHT SINGLES INCREMENTS
+    	currRght = isca[1];
+    	if(b_beamon) gr_singr->SetPoint(scalerctr+1,jentry,currRght);
+    	Int_t rightinc = currRght - prevRght;
+    	if(rightinc < 0){
+    	  errcnts[4]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
+    	  gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
+    	}
+    	if(b_beamon) H[1]->Fill(rightinc);
 
-      prevAccd = currAccd;    	       	       //CALCULATE ACCIDNENTAL INCREMENTS
-      currAccd = isca[3];
-      if(b_beamon) gr_accid->SetPoint(scalerctr+1,jentry,currAccd);
-      Int_t accdinc = currAccd - prevAccd;
-      if(accdinc < 0){
-        errcnts[7]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
-        gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
-      }
-      if(b_beamon) H[3]->Fill(accdinc);
+    	prevRght2 = currRght2;    	       	       //CALCULATE RIGHT SINGLES INCREMENTS
+    	currRght2 = isca[17];
+    	if(b_beamon) gr_singr2->SetPoint(scalerctr+1,jentry,currRght2);
+    	Int_t rightinc2 = currRght2 - prevRght2;
+    	if(rightinc2 < 0){
+    	  errcnts[9]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
+    	  gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
+    	}
+    	if(b_beamon) H[8]->Fill(rightinc2);
 
-      currshel = isca[9] - previsca9;          //CALCULATE HELICITY FROM SCALERS COMPARE TO ITRIG[5]
-      if(currshel > 0) currshel /= currshel;
-      if(currshel != (Int_t)itrig[5] && jentry != 0){   //WHAT HAPPENS IF SCALER CALC'D HEL DOESN'T MATCH TRIGGER?
-        if(b_printascii){
-          output << "HELICITY MISMATCH! currshel: "
-                 << currshel << ", currthel: "
-                 << (Int_t)itrig[5] << endl;
-        }
-        gdhelcyc = -1*skipcyc;                 //RESET GOOD CYCLES AND SKIP NEXT FEW
-        errcnts[1]++;                          //ERROR TRIGGER/SCALER HELICITY MISMATCH
-      }
-      previsca9 = isca[9];                     //SAVE THE PREVIOUS ISCA[9] TO GET NEXT HELICITY FROM SCALER
+      //TODO: SHOULD WE PLOT THESE DIFFERENCES, OR HAVE AN OUTPUT TO THE ERROR FILE NOTING THE ENTRY NUMBER.
+    	if(b_beamon) H[10]->Fill(rightinc-rightinc2); // SCALER 1 - SCALER 2 RIGHT INCREMENT DIFFERENCE
+
+    	prevCoin = currCoin;    	       	       //CALCULATE COINCIDENCE INCREMENTS
+    	currCoin = isca[2];
+    	if(b_beamon) gr_coinc->SetPoint(scalerctr+1,jentry,currCoin);
+    	Int_t coininc = currCoin - prevCoin;
+    	if(coininc < 0){
+    	  errcnts[6]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
+    	  gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
+    	}
+    	if(b_beamon) H[2]->Fill(coininc);
+
+    	prevAccd = currAccd;    	       	       //CALCULATE ACCIDNENTAL INCREMENTS
+    	currAccd = isca[3];
+    	if(b_beamon) gr_accid->SetPoint(scalerctr+1,jentry,currAccd);
+    	Int_t accdinc = currAccd - prevAccd;
+    	if(accdinc < 0){
+    	  errcnts[7]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
+    	  gdhelcyc = -1*skipcyc;                 //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
+    	}
+    	if(b_beamon) H[3]->Fill(accdinc);
+
+    	currshel = isca[9] - previsca9;          //CALCULATE HELICITY FROM SCALERS COMPARE TO ITRIG[5]
+    	if(currshel > 0) currshel /= currshel;
+    	if(currshel != (Int_t)itrig[5] && jentry != 0){   //WHAT HAPPENS IF SCALER CALC'D HEL DOESN'T MATCH TRIGGER?
+    	  if(b_printascii){
+    	    output << "HELICITY MISMATCH! currshel: "
+    		   << currshel << ", currthel: "
+    		   << (Int_t)itrig[5] << endl;
+    	  }
+    	  gdhelcyc = -1*skipcyc;                 //RESET GOOD CYCLES AND SKIP NEXT FEW
+    	  errcnts[1]++;                          //ERROR TRIGGER/SCALER HELICITY MISMATCH
+    	}
+    	previsca9 = isca[9];                     //SAVE THE PREVIOUS ISCA[9] TO GET NEXT HELICITY FROM SCALER
+
+      //FIXME: IS THIS THE CONDITION I WANT???
       if(gdhelcyc >= 0){
         gr_cnrat->SetPoint(scalerctr+1,jentry,(Double_t)coininc*(1./gate));
         gr_slrat->SetPoint(scalerctr+1,jentry,(Double_t)leftinc*(1./gate));
@@ -604,7 +622,6 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   //FITTING AND PLOTTING
   gStyle->SetOptFit(111);
 
-
   TCanvas * cScalers = new TCanvas("cScalers","cScalers",1200,1200);
   cScalers->Divide(3,3);
   cScalers->cd(1);
@@ -622,64 +639,49 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   cScalers->cd(7);
   gr_singr2->Draw("AP");
 
-  TCanvas * cBCMvsTIME = new TCanvas("cBCMvsTIME", "cBCMvsTIME", 1200, 800);
-  H2[0]->Draw();
-
   TCanvas * cIncrements = new TCanvas("cIncrements","cIncrements",1200,800);
   Int_t sidebuff = 100;
   cIncrements->Divide(3,2);
-  cIncrements->cd(1);
+  cIncrements->cd(1)->SetLogy();
   H[0]->GetXaxis()->SetRangeUser(H[0]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[0]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[0]->Draw();
-
-  cIncrements->cd(2);
+  cIncrements->cd(2)->SetLogy();
   H[1]->GetXaxis()->SetRangeUser(H[1]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[1]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[1]->Draw();
-
   cIncrements->cd(3)->SetLogy();
   H[4]->GetXaxis()->SetRangeUser(H[4]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[4]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[4]->Draw();
-
-  cIncrements->cd(4);
+  cIncrements->cd(4)->SetLogy();
   H[2]->GetXaxis()->SetRangeUser(H[2]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[2]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[2]->Draw();
-
-  cIncrements->cd(5);
+  cIncrements->cd(5)->SetLogy();
   H[3]->GetXaxis()->SetRangeUser(H[3]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[3]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[3]->Draw();
-
-  cIncrements->cd(6);
+  cIncrements->cd(6)->SetLogy();
   H[12]->GetXaxis()->SetRangeUser(H[3]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[3]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[12]->Draw();
-
 
   TCanvas * cIncrements2 = new TCanvas("cIncrements2","cIncrements2",1200,800);
   cIncrements2->Divide(3,2);
   cIncrements2->cd(1)->SetLogy();
   H[7]->GetXaxis()->SetRangeUser(H[7]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[7]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[7]->Draw();
-  //
   cIncrements2->cd(2)->SetLogy();
   H[8]->GetXaxis()->SetRangeUser(H[8]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[8]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[8]->Draw();
-
   cIncrements2->cd(3)->SetLogy();
   H[9]->GetXaxis()->SetRangeUser(H[9]->FindFirstBinAbove( 0. , 1 )-5,H[9]->FindLastBinAbove ( 0. , 1 )+5);
   H[9]->Draw();
-
   cIncrements2->cd(4)->SetLogy();
   H[10]->GetXaxis()->SetRangeUser(H[10]->FindFirstBinAbove( 0. , 1 )-10,H[10]->FindLastBinAbove ( 0. , 1 )+10);
   H[10]->Draw();
-
   cIncrements2->cd(5)->SetLogy();
   H[11]->GetXaxis()->SetRangeUser(H[11]->FindFirstBinAbove( 0. , 1 )-400,H[11]->FindLastBinAbove ( 0. , 1 )+400);
   H[11]->Draw();
 
-
   TCanvas * cAsymmetries = new TCanvas("cAsymmetries","cAsymmetries",1200,400);
   Double_t bufffact = 0.1;
   cAsymmetries->Divide(2,1);
-
   cAsymmetries->cd(1);
   H[5]->Draw();
   H[5]->Fit("gaus");
@@ -690,7 +692,6 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
                                 );
   H[5]->Draw();
 
-  //
   cAsymmetries->cd(2);
   H[6]->Draw();
   H[6]->Fit("gaus");
@@ -742,6 +743,18 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   gr_qasym->Fit("pol0");
   TF1 * fitgrqasm = gr_acrat->GetFunction("pol0");
   gr_qasym->Draw("AP");
+
+  TCanvas * cGrChrgRate = new TCanvas("cGrChrgRate", "cGrChrgRate", 1200,400);
+  gr_bcmtm->Draw("AP");
+  gr_bcmtm->Fit("pol0");
+  TF1 * fitgrqrat = gr_bcmtm->GetFunction("pol0");
+  gr_bcmtm->Draw("AP");
+
+  TCanvas * cGrClockInc = new TCanvas("cGrClockInc", "cGrClockInc", 1200,400);
+  gr_clock->Draw("AP");
+  gr_clock->Fit("pol0");
+  TF1 * fitgrclck = gr_clock->GetFunction("pol0");
+  gr_clock->Draw("AP");
 
 
   //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
@@ -802,14 +815,15 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   cScalers->SaveAs(sSaveFirstPage);
   cIncrements->SaveAs(sSaveMiddlePage);
   cIncrements2->SaveAs(sSaveMiddlePage);
-  cBCMvsTIME->SaveAs(sSaveMiddlePage);
   cAsymmetries->SaveAs(sSaveMiddlePage);
   cGrCoinRate->SaveAs(sSaveMiddlePage);
   cGrLeftRate->SaveAs(sSaveMiddlePage);
   cGrRghtRate->SaveAs(sSaveMiddlePage);
   cGrAccdRate->SaveAs(sSaveMiddlePage);
+  cGrChrgRate->SaveAs(sSaveMiddlePage);
   cGrAsymmtry->SaveAs(sSaveMiddlePage);
   cGrChrgAsym->SaveAs(sSaveMiddlePage);
+  cGrClockInc->SaveAs(sSaveMiddlePage);
   cGrPolarizn->SaveAs(sSaveLastPage);
 
   cScalers->SaveAs(     Form( "00_analysis_%i_scalers_graphs.png",RUNN) );
@@ -821,8 +835,10 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   cGrAccdRate->SaveAs(  Form( "06_analysis_%i_accidental_rate_graph.png",RUNN) );
   cGrAsymmtry->SaveAs(  Form( "07_analysis_%i_asymmetry_over_time_graph.png",RUNN) );
   cGrPolarizn->SaveAs(  Form( "08_analysis_%i_polarization_over_time_graph.png",RUNN) );
-  cIncrements2->SaveAs(  Form( "09_analysis_%i_increments2_hist.png", RUNN) );
-  cGrChrgAsym->SaveAs(  Form( "10_analysis_%i_charge_asymmetry_over_time_graph.png",RUNN) );
+  cIncrements2->SaveAs( Form( "09_analysis_%i_increments2_hist.png", RUNN) );
+  cGrChrgRate->SaveAs(  Form( "10_analysis_%i_charge_rate_graph.png", RUNN) );
+  cGrClockInc->SaveAs(  Form( "11_analysis_%i_clock_increments_over_time_graph.png", RUNN) );
+  cGrChrgAsym->SaveAs(  Form( "12_analysis_%i_charge_asymmetry_over_time_graph.png",RUNN) );
 
 
   if(b_printascii) output.close();
