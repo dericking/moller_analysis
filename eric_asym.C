@@ -26,6 +26,7 @@
 #include<iostream>
 #include<sstream>
 #include<fstream>
+#include<sqlite3.h>
 
 Bool_t isnonnum(char c){
   return !(c >= '0' && c <= '9');
@@ -40,9 +41,12 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   const Int_t deln          = -1*DELAY; //HELICTY SIGNAL DELAY
   const Int_t stksz         = 24;       //STACK SIZE
 
-  const Double_t freq       = (Double_t)FREQ; //HELICITY FREQUENCY
+  const Double_t tsettle    = 0.000090;       //90 MICROSECOND TSETTLE TIME
+  const Double_t freq       = (Double_t)FREQ; //DATA COLLECTION FREQUENCY
+  const Double_t gate       = 1./freq-tsettle;//ACTIVE GATE WHILE TAKING DATA
   const Double_t anpow      = 0.77301;        //ANALYZING POWER
   const Double_t ptar       = 0.08012;        //TARGET POLARIZATION
+
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //STRIP RUN NUMBER FROM FILE NAME
@@ -174,7 +178,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   // HISTOGRAMS :: KEEP NHIST UPDATED FOR PRINTING AT END.
   // WHEN YOU ADD HISTOGRAM INCREMEMNT 'nhist1' AND ADD HISTOGRAM TO ARRAY
   // FOR TH2D DO THE SAME THING
-  const Int_t nhist1 = 12;
+  const Int_t nhist1 = 13;
   TH1F * H[nhist1];
   Int_t i_incrbin = 10000;
   Int_t i_incrmax = 10000;
@@ -186,13 +190,14 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   H[7] = new TH1F("inc_sng_l_Sc2", Form("Single Left Increments Scaler 2 - Run %i",RUNN),  i_incrbin,  0, i_incrmax);
   H[8] = new TH1F("inc_sng_r_Sc2", Form("Single Right Increments Scaler 2 - Run %i",RUNN), i_incrbin,  0, i_incrmax);
   H[9] = new TH1F("Diff_Scal_L", Form("Single Left Increments difference (Scaler 1 - Scaler 2) - Run %i", RUNN), i_incrbin, 0, i_incrmax);
-  H[10] = new TH1F("Diff_Scal_R", Form("Single Right Increments difference (Scaler 1 - Scaler 2) - Run %i", RUNN), i_incrbin, 0, i_incrmax);
+  H[10]= new TH1F("Diff_Scal_R", Form("Single Right Increments difference (Scaler 1 - Scaler 2) - Run %i", RUNN), i_incrbin, 0, i_incrmax);
   Int_t asymbin = 500;
   Int_t asymmin =  -1;
   Int_t asymmax =   1;
-  H[5] = new TH1F("asym_uncr", Form("Uncorrected Asym Distro - Run %i",RUNN), asymbin, asymmin, asymmax);
-  H[6] = new TH1F("asym_corr", Form("Corrected Asym Distro - Run %i",RUNN),   asymbin, asymmin, asymmax);
-  H[11] = new TH1F("clockinc", Form("Clock Increments - Run %i", RUNN), 10000,0,10000);
+  H[5] = new TH1F("asym_uncr", Form("Uncorrected Asym Dist - Run %i",RUNN), asymbin, asymmin, asymmax);
+  H[6] = new TH1F("asym_corr", Form("Corrected Asym Dist - Run %i",RUNN),   asymbin, asymmin, asymmax);
+  H[12]= new TH1F("qasymhist", Form("Charge Asymmetry Dist - Run %i",RUNN), asymbin, asymmin, asymmax);
+  H[11]= new TH1F("clockinc", Form("Clock Increments - Run %i", RUNN), 10000,0,10000);
 
   const Int_t nhist2 = 1;
   TH2F * H2[nhist2];
@@ -249,6 +254,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   TGraph * gr_clock = new TGraph();
     gr_clock->SetTitle( Form("Clock over Time - Run %i;Entry$",RUNN) );
     gr_clock->SetMarkerStyle(6);
+
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //VALUES USED IN CALCULATIONS ... SHOULD PROBABLY MOVE STACKS DOWN HERE
@@ -372,13 +378,16 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
         //(3) TAKE THE ASYMMETRY OF THE BCM NORMALIZED SUMS (H0 - H1)/(H0 + H1)
         Double_t asymu = (dhelsumu[1] - dhelsumu[0])/(dhelsumu[1] + dhelsumu[0]);
         Double_t asymc = (dhelsumc[1] - dhelsumc[0])/(dhelsumc[1] + dhelsumc[0]);
+        Double_t qasym = ( ( (Double_t)bcmsums[1]-(Double_t)bcmsums[0] ) / ( (Double_t)bcmsums[1]+(Double_t)bcmsums[0] ) );
         //(4) FILL HISTOGRAMS :)
         H[5]->Fill(asymu);
         H[6]->Fill(asymc);
+        H[12]->Fill(qasym);
         hcycrec++;
         //(5) FILL ASYM:ENTRY$, POL:ENTRY$, TODO: QASYM:ENTRY$ GRAPHS
         gr_asymm->SetPoint(hcycrec,jentry-skipcyc*HELN-HELN,asymc);
         gr_polar->SetPoint(hcycrec,jentry-skipcyc*HELN-HELN,(asymc/(ptar*anpow)));
+        gr_qasym->SetPoint(hcycrec,jentry-skipcyc*HELN-HELN,qasym);
 
         //PRINT OUT THE SUMS AND CALCULATED ASYMMETRIES
         if(b_printascii){
@@ -535,73 +544,72 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
 
       //FIXME: IS THIS THE CONDITION I WANT???
       if(gdhelcyc >= 0){
-    	  gr_cnrat->SetPoint(scalerctr+1,jentry,(Double_t)coininc*freq);
-    	  gr_slrat->SetPoint(scalerctr+1,jentry,(Double_t)leftinc*freq);
-    	  gr_srrat->SetPoint(scalerctr+1,jentry,(Double_t)rightinc*freq);
-    	  gr_acrat->SetPoint(scalerctr+1,jentry,(Double_t)accdinc*freq);
-        gr_bcmtm->SetPoint(scalerctr+1,jentry,(Double_t)beaminc*freq);
-    	}
+        gr_cnrat->SetPoint(scalerctr+1,jentry,(Double_t)coininc*(1./gate));
+        gr_slrat->SetPoint(scalerctr+1,jentry,(Double_t)leftinc*(1./gate));
+        gr_srrat->SetPoint(scalerctr+1,jentry,(Double_t)rightinc*(1./gate));
+        gr_acrat->SetPoint(scalerctr+1,jentry,(Double_t)accdinc*(1./gate));
+      }
 
-    	//////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-    	// POPULATE THE HELICITY, INCREMENT AND SCALER STACKS
-    	Int_t helindex = (scalerctr+deln)%stksz; //INDEX FOR HELICITY STACK
-    	if(helindex < 0) helindex += stksz;      //WHY DOES c++ RETURN A NEGATIVE MODULO, OR IS % A REMAINDER???
-    	Int_t incindex = (scalerctr)%stksz;      //INDEX FOR INCREMENT AND SCALER STACKS
-    	if(b_printascii) output << "helicityStackIndex: " << helindex << endl;
-    	if(b_printascii) output << "incremntStackIndex: " << incindex << endl;
-    	helstack[ helindex ] = currshel;         //FILL HELICITY STACK
-    	coincstk[ incindex ] = coininc;          //FILL COINCIDENCE INCREMENT STACK
-    	accstack[ incindex ] = accdinc;          //FILL ACCIDENTAL INCREMENT STACK
-    	bcmstack[ incindex ] = beaminc;          //FILL CHARGE INCREMENT STACK
-    	coinscalstack[ incindex ] = currcnt;     //FILL COINCIDENCE SCALER STACK
-    	accdscalstack[ incindex ] = curracc;     //FILL ACCIDENTAL SCALER STACK
-    	bcmqscalstack[ incindex ] = currbcm;     //FILL CHARGE SCALER STACK
+      //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+      // POPULATE THE HELICITY, INCREMENT AND SCALER STACKS
+      Int_t helindex = (scalerctr+deln)%stksz; //INDEX FOR HELICITY STACK
+      if(helindex < 0) helindex += stksz;      //WHY DOES c++ RETURN A NEGATIVE MODULO, OR IS % A REMAINDER???
+      Int_t incindex = (scalerctr)%stksz;      //INDEX FOR INCREMENT AND SCALER STACKS
+      if(b_printascii) output << "helicityStackIndex: " << helindex << endl;
+      if(b_printascii) output << "incremntStackIndex: " << incindex << endl;
+      helstack[ helindex ] = currshel;         //FILL HELICITY STACK
+      coincstk[ incindex ] = coininc;          //FILL COINCIDENCE INCREMENT STACK
+      accstack[ incindex ] = accdinc;          //FILL ACCIDENTAL INCREMENT STACK
+      bcmstack[ incindex ] = beaminc;          //FILL CHARGE INCREMENT STACK
+      coinscalstack[ incindex ] = currcnt;     //FILL COINCIDENCE SCALER STACK
+      accdscalstack[ incindex ] = curracc;     //FILL ACCIDENTAL SCALER STACK
+      bcmqscalstack[ incindex ] = currbcm;     //FILL CHARGE SCALER STACK
 
 
-    	//////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-    	//PRINT OUT THE STACKS FOR VISUAL CONFIRMATION :: NO CALCULATIONS DONE HERE
-    	//A "*" TO THE RIGHT OF A NUMBER IS THE MOST RECENTLY WRITTEN NUMBER
-    	if(b_printascii){
-    	  output << "(" << helflip << ") helstack[";
-    	  for(Int_t i = 0; i < stksz; i++){
-    	    if(helindex==i){
-    	      output << std::setw(6) << helstack[i] << "*";
-    	    }else{
-    	      output << std::setw(6) << helstack[i] << " ";
-    	    }
-    	  }
-    	  output << "]" << endl;
-    	  //PRINT COINC STACK
-    	  output << "(" << helflip << ") coincstk[";
-    	  for(Int_t i = 0; i < stksz; i++){
-    	    if((scalerctr)%(stksz)==i){
-    	      output << std::setw(6) << coincstk[i] << "*";
-    	    }else{
-    	      output << std::setw(6) << coincstk[i] << " ";
-    	    }
-    	  }
-    	  output << "]" << endl;
-    	  //PRINT ACCIDENTAL STACK
-    	  output << "(" << helflip << ") accstack[";
-    	  for(Int_t i = 0; i < stksz; i++){
-    	    if((scalerctr)%(stksz)==i){
-    	      output << std::setw(6) << accstack[i] << "*";
-    	    }else{
-    	      output << std::setw(6) << accstack[i] << " ";
-    	    }
-    	  }
-    	  output << "]" << endl;
-    	  //PRINT BCM STACK
-    	  output << "(" << helflip << ") bcmstack[";
-    	  for(Int_t i = 0; i < stksz; i++){
-    	    if((scalerctr)%(stksz)==i){
-    	      output << std::setw(6) << bcmstack[i] << "*";
-    	    }else{
-    	      output << std::setw(6) << bcmstack[i] << " ";
-    	    }
-    	  }
-    	  output << "]" << endl;
-    	}//END OF IF(B_PRINTASCII)
+      //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+      //PRINT OUT THE STACKS FOR VISUAL CONFIRMATION :: NO CALCULATIONS DONE HERE
+      //A "*" TO THE RIGHT OF A NUMBER IS THE MOST RECENTLY WRITTEN NUMBER
+      if(b_printascii){
+        output << "(" << helflip << ") helstack[";
+        for(Int_t i = 0; i < stksz; i++){
+          if(helindex==i){
+            output << std::setw(6) << helstack[i] << "*";
+          }else{
+            output << std::setw(6) << helstack[i] << " ";
+          }
+        }
+        output << "]" << endl;
+        //PRINT COINC STACK
+        output << "(" << helflip << ") coincstk[";
+        for(Int_t i = 0; i < stksz; i++){
+          if((scalerctr)%(stksz)==i){
+            output << std::setw(6) << coincstk[i] << "*";
+          }else{
+            output << std::setw(6) << coincstk[i] << " ";
+          }
+        }
+        output << "]" << endl;
+        //PRINT ACCIDENTAL STACK
+        output << "(" << helflip << ") accstack[";
+        for(Int_t i = 0; i < stksz; i++){
+          if((scalerctr)%(stksz)==i){
+            output << std::setw(6) << accstack[i] << "*";
+          }else{
+            output << std::setw(6) << accstack[i] << " ";
+          }
+        }
+        output << "]" << endl;
+        //PRINT BCM STACK
+        output << "(" << helflip << ") bcmstack[";
+        for(Int_t i = 0; i < stksz; i++){
+          if((scalerctr)%(stksz)==i){
+            output << std::setw(6) << bcmstack[i] << "*";
+          }else{
+            output << std::setw(6) << bcmstack[i] << " ";
+          }
+        }
+        output << "]" << endl;
+      }//END OF IF(B_PRINTASCII)
 
     }//END OF IF(NSCA>0)
 
@@ -614,7 +622,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   //FITTING AND PLOTTING
   gStyle->SetOptFit(111);
 
-  TCanvas * cScalers = new TCanvas("cScalers","cScalers",1200,800);
+  TCanvas * cScalers = new TCanvas("cScalers","cScalers",1200,1200);
   cScalers->Divide(3,3);
   cScalers->cd(1);
   gr_singl->Draw("AP");
@@ -649,6 +657,9 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   cIncrements->cd(5)->SetLogy();
   H[3]->GetXaxis()->SetRangeUser(H[3]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[3]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[3]->Draw();
+  cIncrements->cd(6)->SetLogy();
+  H[12]->GetXaxis()->SetRangeUser(H[3]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[3]->FindLastBinAbove ( 0. , 1 )+sidebuff);
+  H[12]->Draw();
 
   TCanvas * cIncrements2 = new TCanvas("cIncrements2","cIncrements2",1200,800);
   cIncrements2->Divide(3,2);
@@ -726,6 +737,12 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   gr_acrat->Fit("pol0");
   TF1 * fitgrarat = gr_acrat->GetFunction("pol0");
   gr_acrat->Draw("AP");
+
+  TCanvas * cGrChrgAsym = new TCanvas("cGrChrgAsym","cGrChrgAsym",1200,400);
+  gr_qasym->Draw("AP");
+  gr_qasym->Fit("pol0");
+  TF1 * fitgrqasm = gr_acrat->GetFunction("pol0");
+  gr_qasym->Draw("AP");
 
   TCanvas * cGrChrgRate = new TCanvas("cGrChrgRate", "cGrChrgRate", 1200,400);
   gr_bcmtm->Draw("AP");
@@ -805,6 +822,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   cGrAccdRate->SaveAs(sSaveMiddlePage);
   cGrChrgRate->SaveAs(sSaveMiddlePage);
   cGrAsymmtry->SaveAs(sSaveMiddlePage);
+  cGrChrgAsym->SaveAs(sSaveMiddlePage);
   cGrClockInc->SaveAs(sSaveMiddlePage);
   cGrPolarizn->SaveAs(sSaveLastPage);
 
@@ -820,6 +838,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   cIncrements2->SaveAs( Form( "09_analysis_%i_increments2_hist.png", RUNN) );
   cGrChrgRate->SaveAs(  Form( "10_analysis_%i_charge_rate_graph.png", RUNN) );
   cGrClockInc->SaveAs(  Form( "11_analysis_%i_clock_increments_over_time_graph.png", RUNN) );
+  cGrChrgAsym->SaveAs(  Form( "12_analysis_%i_charge_asymmetry_over_time_graph.png",RUNN) );
 
 
   if(b_printascii) output.close();

@@ -25,7 +25,6 @@ fi
 
 echo "Starting analysis for ${START} to ${END}"
 
-#where to find the data files - do not edit this location; this is a set directory
 FILEDIR="/w/halla-scifs17exp/moller/disk1/a-molana/moller_data"
 
 for (( ANALRUN=$START; ANALRUN<=$END; ANALRUN++ )); do
