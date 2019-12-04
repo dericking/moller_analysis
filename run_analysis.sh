@@ -10,10 +10,6 @@ RSLTDIR="analysis"
 #does the files and date folder in the results directory exist?
 [ -d "${RSLTDIR}/files" ] && echo "Moller online analysis directory exists. Woohoo!!!" || mkdir "${RSLTDIR}/files"
 [ -d "${RSLTDIR}/date" ] && echo  "Moller online analysis directory exists. Woohoo!!!" || mkdir "${RSLTDIR}/date"
-#where to find the data files - do not edit this location; this is a set directory
-FILEDIR="/w/halla-scifs17exp/moller/disk1/a-molana/moller_data"
-[ -d "${FILEDIR}" ] && echo  "Temporary directory for moller_data_NNNNN.nt and ROOT files exists. Nice!" || mkdir "${FILEDIR}"
-
 
 rm -f *.png
 rm -f *.pdf
@@ -28,6 +24,9 @@ else
 fi
 
 echo "Starting analysis for ${START} to ${END}"
+
+#where to find the data files - do not edit this location; this is a set directory
+FILEDIR="/w/halla-scifs17exp/moller/disk1/a-molana/moller_data"
 
 for (( ANALRUN=$START; ANALRUN<=$END; ANALRUN++ )); do
     
