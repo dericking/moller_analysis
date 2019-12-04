@@ -26,7 +26,7 @@
 #include<iostream>
 #include<sstream>
 #include<fstream>
-#include<sqlite3.h>
+//#include<sqlite3.h>
 
 Bool_t isnonnum(char c){
   return !(c >= '0' && c <= '9');
@@ -548,6 +548,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
         gr_slrat->SetPoint(scalerctr+1,jentry,(Double_t)leftinc*(1./gate));
         gr_srrat->SetPoint(scalerctr+1,jentry,(Double_t)rightinc*(1./gate));
         gr_acrat->SetPoint(scalerctr+1,jentry,(Double_t)accdinc*(1./gate));
+        gr_bcmtm->SetPoint(scalerctr+1,jentry,(Double_t)beaminc*(1./gate));
       }
 
       //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
