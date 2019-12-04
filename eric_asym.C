@@ -440,7 +440,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
       currClock = isca[14];
       Int_t clockinc = currClock - prevClock;   // CALCULATE CLOCK INCREMENTS
       Bool_t b_clockgood = true;
-      if( (clockinc < (expclock*0.95) && clockinc > (expclock*1.05) ) ){
+      if( (clockinc < (expclock*0.95) || clockinc > (expclock*1.05) ) ){
         errcnts[10]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
         gdhelcyc = -1*skipcyc;                  //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
         b_clockgood = false;                    //BAD CLOCK SAME AS BAD BEAM,
@@ -819,6 +819,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   cGrPolarizn->SaveAs(  Form( "08_analysis_%i_polarization_over_time_graph.png",RUNN) );
   cIncrements2->SaveAs( Form( "09_analysis_%i_increments2_hist.png", RUNN) );
   cGrChrgRate->SaveAs(  Form( "10_analysis_%i_charge_rate_graph.png", RUNN) );
+  cGrClockInc->SaveAs(  Form( "11_analysis_%i_clock_increments_over_time_graph.png", RUNN) );
 
 
   if(b_printascii) output.close();
