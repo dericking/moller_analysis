@@ -451,7 +451,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
       //Moved these to after both beam and clock are checked, eventually all must be moved.
       if(b_beamon) H[4]->Fill(beaminc);
       if(b_beamon) gr_charg->SetPoint(scalerctr+1,jentry,currbcm);
-      if(b_beamon) gr_clock->SetPoint(scalerctr+1,jentry,currClock);
+      if(b_beamon) gr_clock->SetPoint(scalerctr+1,jentry,clockinc);
       if(b_beamon) H[11]->Fill(clockinc);
     	//if(b_beamon) H2[0]->Fill(currClock, beaminc); //DEPRICATED BY ERIC - USE TGRAPH OVER ENTRY
 
