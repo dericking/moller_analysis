@@ -201,49 +201,49 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //GRAPHS USED FOR PLOTTING SCALERS
   TGraph * gr_singl = new TGraph();
-   gr_singl->SetTitle("Left Singles Scaler;Entry$");
+   gr_singl->SetTitle( Form("Left Singles Scaler - Run %i;Entry",RUNN));
    gr_singl->SetMarkerStyle(6);
   TGraph * gr_singr = new TGraph();
-   gr_singr->SetTitle("Right Singles Scaler;Entry$");
+   gr_singr->SetTitle( Form("Right Singles Scaler - Run %i;Entry",RUNN));
    gr_singr->SetMarkerStyle(6);
   TGraph * gr_singl2 = new TGraph();
-   gr_singl2->SetTitle("Left Singles Scaler 2;Entry$");
+   gr_singl2->SetTitle( Form("Left Singles Scaler 2 - Run %i;Entry",RUNN));
    gr_singl2->SetMarkerStyle(6);
   TGraph * gr_singr2 = new TGraph();
-   gr_singr2->SetTitle("Right Singles Scaler 2;Entry$");
+   gr_singr2->SetTitle( Form("Right Singles Scaler 2 - Run %i;Entry",RUNN));
    gr_singr2->SetMarkerStyle(6);
   TGraph * gr_coinc = new TGraph();
-   gr_coinc->SetTitle("Coincidence Scaler;Entry$");
+   gr_coinc->SetTitle( Form("Coincidence Scaler - Run %i;Entry",RUNN));
    gr_coinc->SetMarkerStyle(6);
   TGraph * gr_accid = new TGraph();
-   gr_accid->SetTitle("Accidental Scaler;Entry$");
+   gr_accid->SetTitle( Form("Accidental Scaler - Run %i;Entry",RUNN));
    gr_accid->SetMarkerStyle(6);
   TGraph * gr_charg = new TGraph();
-   gr_charg->SetTitle("BCM Scaler;Entry$");
+   gr_charg->SetTitle( Form("BCM Scaler - Run %i;Entry",RUNN));
    gr_charg->SetMarkerStyle(6);
   TGraph * gr_asymm = new TGraph();
-   gr_asymm->SetTitle("Corrected Asymmetry;Helicity Cycle Beginning at Entry$");
+   gr_asymm->SetTitle( Form("Corrected Asymmetry - Run %i;Entry$",RUNN) );
    gr_asymm->SetMarkerStyle(6);
   TGraph * gr_qasym = new TGraph();
-   gr_qasym->SetTitle("Charge Asymmetry; Charge Asymmetry at Entry$");
+   gr_qasym->SetTitle( Form("Charge Asymmetry - Run %i;Entry$",RUNN) );
    gr_qasym->SetMarkerStyle(6);
   TGraph * gr_bcmtm = new TGraph();
-   gr_bcmtm->SetTitle("BCM Over Time; Charge Asymmetry at Entry$");
+   gr_bcmtm->SetTitle( Form("BCM Over Time - Run %i;Entry$",RUNN) );
    gr_bcmtm->SetMarkerStyle(6);
   TGraph * gr_polar = new TGraph();
-   gr_polar->SetTitle("Polarizaton; Polarization at Entry$");
+   gr_polar->SetTitle( Form("Polarizaton - Run %i;Entry$",RUNN) );
    gr_polar->SetMarkerStyle(6);
   TGraph * gr_slrat = new TGraph();
-   gr_slrat->SetTitle("Left Singles Rate; Left Singles Rate at Entry$");
+   gr_slrat->SetTitle( Form("Left Singles Rate - Run %i;Entry$",RUNN) );
    gr_slrat->SetMarkerStyle(6);
   TGraph * gr_srrat = new TGraph();
-   gr_srrat->SetTitle("Right Singles Rate; Right Singles Rate at Entry$");
+   gr_srrat->SetTitle( Form("Right Singles Rate - Run %i;Entry$",RUNN) );
    gr_srrat->SetMarkerStyle(6);
   TGraph * gr_cnrat = new TGraph();
-   gr_cnrat->SetTitle("Coincidence Rate; Coincidence Rate at Entry$");
+   gr_cnrat->SetTitle( Form("Coincidence Rate - Run %i;Entry$",RUNN) );
    gr_cnrat->SetMarkerStyle(6);
   TGraph * gr_acrat = new TGraph();
-   gr_acrat->SetTitle("Accidentals Rate; Accidentals Rate at Entry$");
+   gr_acrat->SetTitle( Form("Accidentals Rate - Run %i;Entry$",RUNN) );
    gr_acrat->SetMarkerStyle(6);
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
@@ -629,19 +629,19 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   TCanvas * cIncrements = new TCanvas("cIncrements","cIncrements",1200,800);
   Int_t sidebuff = 100;
   cIncrements->Divide(3,2);
-  cIncrements->cd(1);
+  cIncrements->cd(1)->SetLogy();
   H[0]->GetXaxis()->SetRangeUser(H[0]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[0]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[0]->Draw();
-  cIncrements->cd(2);
+  cIncrements->cd(2)->SetLogy();
   H[1]->GetXaxis()->SetRangeUser(H[1]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[1]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[1]->Draw();
-  cIncrements->cd(3);
+  cIncrements->cd(3)->SetLogy();
   H[4]->GetXaxis()->SetRangeUser(H[4]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[4]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[4]->Draw();
-  cIncrements->cd(4);
+  cIncrements->cd(4)->SetLogy();
   H[2]->GetXaxis()->SetRangeUser(H[2]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[2]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[2]->Draw();
-  cIncrements->cd(5);
+  cIncrements->cd(5)->SetLogy();
   H[3]->GetXaxis()->SetRangeUser(H[3]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[3]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[3]->Draw();
 
@@ -805,7 +805,8 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   cGrAccdRate->SaveAs(  Form( "06_analysis_%i_accidental_rate_graph.png",RUNN) );
   cGrAsymmtry->SaveAs(  Form( "07_analysis_%i_asymmetry_over_time_graph.png",RUNN) );
   cGrPolarizn->SaveAs(  Form( "08_analysis_%i_polarization_over_time_graph.png",RUNN) );
-  cIncrements2->SaveAs(  Form( "09_analysis_%i_increments2_hist.png", RUNN) );
+  cIncrements2->SaveAs( Form( "09_analysis_%i_increments2_hist.png", RUNN) );
+  cGrChrgRate->SaveAs(  Form( "10_analysis_%i_charge_rate_graph.png", RUNN) );
 
 
   if(b_printascii) output.close();
