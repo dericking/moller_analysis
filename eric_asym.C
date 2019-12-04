@@ -47,7 +47,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //STRIP RUN NUMBER FROM FILE NAME
   std::string fnamecopy = FILE;
-  std::string fnametrun = fnamecopy.substr( fnamecopy.find('data_')+1 );
+  std::string fnametrun = fnamecopy.substr( fnamecopy.find('_')+1 );
   fnametrun.erase(std::remove_if(fnamecopy.begin(),fnamecopy.end(),isnonnum),fnamecopy.end());
   stringstream ss;
   ss << fnametrun;
