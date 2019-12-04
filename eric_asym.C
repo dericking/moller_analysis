@@ -41,9 +41,9 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   const Int_t deln          = -1*DELAY; //HELICTY SIGNAL DELAY
   const Int_t stksz         = 24;       //STACK SIZE
 
-  const Double_t tsettle    = 0.000090; //90 MICROSECOND TSETTLE TIME
-  //CALCULATE THE EFFECTIVE FREQUENCY BY SUBTRACTING OUT TSETTLE FROM FREQ, THIS IS INVERSET OF GATE
-  const Double_t freq       = 1. / (1./ (Double_t)FREQ - tsettle);
+  const Double_t tsettle    = 0.000090;       //90 MICROSECOND TSETTLE TIME
+  const Double_t freq       = (Double_t)FREQ; //DATA COLLECTION FREQUENCY
+  const Double_t gate       = 1./freq-tsettle;//ACTIVE GATE WHILE TAKING DATA
   const Double_t anpow      = 0.77301;        //ANALYZING POWER
   const Double_t ptar       = 0.08012;        //TARGET POLARIZATION
 
@@ -195,7 +195,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   Int_t asymmax =   1;
   H[5] = new TH1F("asym_uncr", Form("Uncorrected Asym Dist - Run %i",RUNN), asymbin, asymmin, asymmax);
   H[6] = new TH1F("asym_corr", Form("Corrected Asym Dist - Run %i",RUNN),   asymbin, asymmin, asymmax);
-  H[12]= new TH1F("qasymhist", Form("Charge Asymmetry Dist - Run %i",RUNN), asymbin, asymmin, asymmax); 
+  H[12]= new TH1F("qasymhist", Form("Charge Asymmetry Dist - Run %i",RUNN), asymbin, asymmin, asymmax);
   H[11]= new TH1F("clockinc", Form("Clock Increments - Run %i", RUNN), 10000,0,10000);
 
   const Int_t nhist2 = 1;
@@ -269,7 +269,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   Int_t currshel  = -1;            //CURRENT HELICITY FROM SCALERS
   Int_t previsca9 = 0;             //KEEPS TRACK OF ISCA[9] SO THAT WE CAN GET HELICITY FROM SCALER DATA
 
-  Int_t prevClock = 0 ;            // CLOCK INCREMENTS 
+  Int_t prevClock = 0 ;            // CLOCK INCREMENTS
   Int_t currClock = 0 ;
 
   Int_t currcnt   = 0;             //CURRENT COIN SCALER
@@ -479,8 +479,8 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
       if(b_beamon) H[8]->Fill(rightinc2);
 
       if(b_beamon) H[10]->Fill(rightinc-rightinc2); // SCALER 1 - SCALER 2 RIGHT INCREMENT DIFFERENCE
-     
-      prevClock = currClock;                   
+
+      prevClock = currClock;
       currClock = isca[14];
       Int_t clockinc = currClock - prevClock;    // CALCULATE CLOCK INCREMENTS
       if(clockinc < 0){
@@ -489,10 +489,10 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
       }
       if(b_beamon) H[11]->Fill(clockinc);
 
-      
+
       if(b_beamon) H2[0]->Fill(currClock, beaminc); // BCM vs TIME
 
-      
+
       prevCoin = currCoin;    	       	       //CALCULATE COINCIDENCE INCREMENTS
       currCoin = isca[2];
       if(b_beamon) gr_coinc->SetPoint(scalerctr+1,jentry,currCoin);
@@ -526,10 +526,10 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
       }
       previsca9 = isca[9];                     //SAVE THE PREVIOUS ISCA[9] TO GET NEXT HELICITY FROM SCALER
       if(gdhelcyc >= 0){
-        gr_cnrat->SetPoint(scalerctr+1,jentry,(Double_t)coininc*freq);
-        gr_slrat->SetPoint(scalerctr+1,jentry,(Double_t)leftinc*freq);
-        gr_srrat->SetPoint(scalerctr+1,jentry,(Double_t)rightinc*freq);
-        gr_acrat->SetPoint(scalerctr+1,jentry,(Double_t)accdinc*freq);
+        gr_cnrat->SetPoint(scalerctr+1,jentry,(Double_t)coininc*(1./gate));
+        gr_slrat->SetPoint(scalerctr+1,jentry,(Double_t)leftinc*(1./gate));
+        gr_srrat->SetPoint(scalerctr+1,jentry,(Double_t)rightinc*(1./gate));
+        gr_acrat->SetPoint(scalerctr+1,jentry,(Double_t)accdinc*(1./gate));
       }
 
       //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
@@ -604,7 +604,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   //FITTING AND PLOTTING
   gStyle->SetOptFit(111);
 
-  
+
   TCanvas * cScalers = new TCanvas("cScalers","cScalers",1200,1200);
   cScalers->Divide(3,3);
   cScalers->cd(1);
@@ -631,19 +631,19 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   cIncrements->cd(1);
   H[0]->GetXaxis()->SetRangeUser(H[0]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[0]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[0]->Draw();
-  
+
   cIncrements->cd(2);
   H[1]->GetXaxis()->SetRangeUser(H[1]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[1]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[1]->Draw();
-  
+
   cIncrements->cd(3)->SetLogy();
   H[4]->GetXaxis()->SetRangeUser(H[4]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[4]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[4]->Draw();
-  
+
   cIncrements->cd(4);
   H[2]->GetXaxis()->SetRangeUser(H[2]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[2]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[2]->Draw();
-  
+
   cIncrements->cd(5);
   H[3]->GetXaxis()->SetRangeUser(H[3]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[3]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[3]->Draw();
@@ -651,8 +651,8 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   cIncrements->cd(6);
   H[12]->GetXaxis()->SetRangeUser(H[3]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[3]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[12]->Draw();
-  
-  
+
+
   TCanvas * cIncrements2 = new TCanvas("cIncrements2","cIncrements2",1200,800);
   cIncrements2->Divide(3,2);
   cIncrements2->cd(1)->SetLogy();
@@ -675,11 +675,11 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   H[11]->GetXaxis()->SetRangeUser(H[11]->FindFirstBinAbove( 0. , 1 )-400,H[11]->FindLastBinAbove ( 0. , 1 )+400);
   H[11]->Draw();
 
-  
+
   TCanvas * cAsymmetries = new TCanvas("cAsymmetries","cAsymmetries",1200,400);
   Double_t bufffact = 0.1;
   cAsymmetries->Divide(2,1);
- 
+
   cAsymmetries->cd(1);
   H[5]->Draw();
   H[5]->Fit("gaus");
@@ -689,7 +689,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
                                   (((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin*(Double_t)H[5]->FindLastBinAbove (0,1)*(1+bufffact)+(Double_t)asymmin)
                                 );
   H[5]->Draw();
-  
+
   //
   cAsymmetries->cd(2);
   H[6]->Draw();
@@ -700,7 +700,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
                                   (((Double_t)asymmax-(Double_t)asymmin)/(Double_t)asymbin*(Double_t)H[6]->FindLastBinAbove (0,1)*(1+bufffact)+(Double_t)asymmin)
                                 );
   H[6]->Draw();
-  
+
   TCanvas * cGrAsymmtry = new TCanvas("cGrAsymmtry","cGrAsymmtry",1200,400);
   gr_asymm->Draw("AP");
   gr_asymm->Fit("pol0");
@@ -774,7 +774,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
           << std::setw(7) << std::setprecision(4) << perr << "  " << endl;
   summary.close();
 
-  
+
   //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // PRINT ERRORS
   ofstream errorsummary;
