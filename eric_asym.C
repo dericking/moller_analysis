@@ -246,6 +246,9 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   TGraph * gr_acrat = new TGraph();
    gr_acrat->SetTitle( Form("Accidentals Rate - Run %i;Entry$",RUNN) );
    gr_acrat->SetMarkerStyle(6);
+  TGraph * gr_clock = new TGraph();
+    gr_clock->SetTitle( Form("Clock over Time - Run %i;Entry$",RUNN) );
+    gr_clock->SetMarkerStyle(6);
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //VALUES USED IN CALCULATIONS ... SHOULD PROBABLY MOVE STACKS DOWN HERE
@@ -436,7 +439,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
       prevClock = currClock;
       currClock = isca[14];
       Int_t clockinc = currClock - prevClock;   // CALCULATE CLOCK INCREMENTS
-      Bool_t b_clockgood = false;
+      Bool_t b_clockgood = true;
       if( (clockinc < (expclock*0.95) && clockinc > (expclock*1.05) ) ){
         errcnts[10]++;                          //RECORD INCIDENT OF NEGATIVE INCREMEMNT TO COUNTER
         gdhelcyc = -1*skipcyc;                  //NEGATIVE INCREMENT RESET GOOD CYCLE TRACKER TO SKIPCYCLES VALUE
@@ -448,6 +451,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
       //Moved these to after both beam and clock are checked, eventually all must be moved.
       if(b_beamon) H[4]->Fill(beaminc);
       if(b_beamon) gr_charg->SetPoint(scalerctr+1,jentry,currbcm);
+      if(b_beamon) gr_clock->SetPoint(scalerctr+1,jentry,currClock);
       if(b_beamon) H[11]->Fill(clockinc);
     	//if(b_beamon) H2[0]->Fill(currClock, beaminc); //DEPRICATED BY ERIC - USE TGRAPH OVER ENTRY
 
@@ -729,6 +733,12 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   TF1 * fitgrqrat = gr_bcmtm->GetFunction("pol0");
   gr_bcmtm->Draw("AP");
 
+  TCanvas * cGrClockInc = new TCanvas("cGrClockInc", "cGrClockInc", 1200,400);
+  gr_clock->Draw("AP");
+  gr_clock->Fit("pol0");
+  TF1 * fitgrclck = gr_clock->GetFunction("pol0");
+  gr_clock->Draw("AP");
+
 
   //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // SAVE RUN DATA SUMMARY -- RUN,SINGL,SINGR,COINC,ACCID,BCM,ASYM,ASYMERR,POL,POLERR
@@ -795,6 +805,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   cGrAccdRate->SaveAs(sSaveMiddlePage);
   cGrChrgRate->SaveAs(sSaveMiddlePage);
   cGrAsymmtry->SaveAs(sSaveMiddlePage);
+  cGrClockInc->SaveAs(sSaveMiddlePage);
   cGrPolarizn->SaveAs(sSaveLastPage);
 
   cScalers->SaveAs(     Form( "00_analysis_%i_scalers_graphs.png",RUNN) );
