@@ -297,6 +297,8 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   Double_t expclock = 0;           //EXPECTED CLOCK TIME WINDOW
   expclock = ( 1./ freq ) * 97000 ;//100KHz CLOCK ASSUMES 3% DEADTIME, IF 240Hz LET'S DO 2% DEADTIME MAYBE(?)
 
+  Int_t rateplotcntr = 0;
+
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // START LOOPING THROUGH THE ENTRIES OF THE ROOT NTUPLE
@@ -460,7 +462,6 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
       //Moved these to after both beam and clock are checked, eventually all must be moved.
       if(b_beamon) H[4]->Fill(beaminc);
       if(b_beamon) gr_charg->SetPoint(scalerctr+1,jentry,currbcm);
-      if(b_beamon) gr_clock->SetPoint(scalerctr+1,jentry,clockinc);
       if(b_beamon) H[11]->Fill(clockinc);
     	//if(b_beamon) H2[0]->Fill(currClock, beaminc); //DEPRICATED BY ERIC - USE TGRAPH OVER ENTRY
 
@@ -542,13 +543,16 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
     	}
     	previsca9 = isca[9];                     //SAVE THE PREVIOUS ISCA[9] TO GET NEXT HELICITY FROM SCALER
 
-      //FIXME: IS THIS THE CONDITION I WANT???
+      //FIXME: IS THIS THE CONDITION I WANT??? I DON'T THINK THAT IT IS. OCCASSIONALLY WE'RE GOING TO HAVE A PARTIAL CYCLE WE DIDN'T WANT IN THIS.
+      //TODO:  NEEDS RESOLUTION. THEN AGAIN, IT'S NOT NECESSARY THAT SOMETHING PLOTTED HERE WAS USED IN CALCULATING ASYMMETRY.
       if(gdhelcyc >= 0){
-        gr_cnrat->SetPoint(scalerctr+1,jentry,(Double_t)coininc*(1./gate));
-        gr_slrat->SetPoint(scalerctr+1,jentry,(Double_t)leftinc*(1./gate));
-        gr_srrat->SetPoint(scalerctr+1,jentry,(Double_t)rightinc*(1./gate));
-        gr_acrat->SetPoint(scalerctr+1,jentry,(Double_t)accdinc*(1./gate));
-        gr_bcmtm->SetPoint(scalerctr+1,jentry,(Double_t)beaminc*(1./gate));
+        rateplotcntr++;
+        gr_cnrat->SetPoint(rateplotcntr+1,jentry,(Double_t)coininc*(1./gate));
+        gr_slrat->SetPoint(rateplotcntr+1,jentry,(Double_t)leftinc*(1./gate));
+        gr_srrat->SetPoint(rateplotcntr+1,jentry,(Double_t)rightinc*(1./gate));
+        gr_acrat->SetPoint(rateplotcntr+1,jentry,(Double_t)accdinc*(1./gate));
+        gr_bcmtm->SetPoint(rateplotcntr+1,jentry,(Double_t)beaminc*(1./gate));
+        gr_clock->SetPoint(rateplotcntr+1,jentry,(Double_t)clockinc*(1./gate));
       }
 
       //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
