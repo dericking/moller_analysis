@@ -746,7 +746,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   TCanvas * cGrChrgAsym = new TCanvas("cGrChrgAsym","cGrChrgAsym",1200,400);
   gr_qasym->Draw("AP");
   gr_qasym->Fit("pol0");
-  TF1 * fitgrqasm = gr_acrat->GetFunction("pol0");
+  TF1 * fitgrqasm = gr_qasym->GetFunction("pol0");
   gr_qasym->Draw("AP");
 
   TCanvas * cGrChrgRate = new TCanvas("cGrChrgRate", "cGrChrgRate", 1200,400);
