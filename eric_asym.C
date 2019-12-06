@@ -383,12 +383,12 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
         H[5]->Fill(asymu);
         H[6]->Fill(asymc);
         H[12]->Fill(qasym);
-        hcycrec++;
+        //hcycrec++;
         //(5) FILL ASYM:ENTRY$, POL:ENTRY$, TODO: QASYM:ENTRY$ GRAPHS
         gr_asymm->SetPoint(hcycrec,jentry-skipcyc*HELN-HELN,asymc);
         gr_polar->SetPoint(hcycrec,jentry-skipcyc*HELN-HELN,(asymc/(ptar*anpow)));
         gr_qasym->SetPoint(hcycrec,jentry-skipcyc*HELN-HELN,qasym);
-
+	hcycrec++;
         //PRINT OUT THE SUMS AND CALCULATED ASYMMETRIES
         if(b_printascii){
           output << "      --> helsumu[0]: " << std::setw(7) << helsumu[0]
