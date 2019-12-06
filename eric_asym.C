@@ -769,28 +769,42 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   ssof << "final_stats_" << RUNN << ".txt";
   cout << "writing stats summary to file name: " << (ssof.str()).c_str() << endl;
   summary.open( (ssof.str()).c_str() );
-  Int_t lrat = (Int_t)(fitgrlrat->GetParameter(0) );
-  Int_t rrat = (Int_t)(fitgrrrat->GetParameter(0) );
-  Int_t crat = (Int_t)(fitgrcrat->GetParameter(0) );
-  Int_t arat = (Int_t)(fitgrarat->GetParameter(0) );
-  Int_t qrat = (Int_t)(H[4]->GetMean() * FREQ);
-  //Double_t aavg = fit5->GetParameter(1);
-  Double_t aavg = fitgrasym->GetParameter(0);
-  //Double_t aerr = fit5->GetParError(1);
-  Double_t aerr = fitgrasym->GetParError(0);
-  Double_t pavg = fitgrpolr->GetParameter(0);
-  Double_t perr = fitgrpolr->GetParError(0);
+  Int_t    lrat = (Int_t)(fitgrlrat->GetParameter(0) );	//LEFT SINGLES RATE
+  Int_t    rrat = (Int_t)(fitgrrrat->GetParameter(0) );	//RIGHT SINGLES RATE
+  Int_t    crat = (Int_t)(fitgrcrat->GetParameter(0) ); //COINCIDENCE RATE
+  Int_t    arat = (Int_t)(fitgrarat->GetParameter(0) ); //ACCIDENTALS RATE
+  Int_t    qrat = (Int_t)(fitgrqrat->GetParameter(0) ); //CHARGE (BCM) RATE
+  Int_t    clrt = (Int_t)(fitgrclck->GetParameter(0) ); //CLOCK RATE
+  Double_t aavg = fitgrasym->GetParameter(0);		//ASYMMETRY MEAN FROM POL0 FIT
+  Double_t aerr = fitgrasym->GetParError(0);		//ASYMMETRY MEAN ERROR FROM POL0 FIT
+  Double_t pavg = fitgrpolr->GetParameter(0);		//POLARIZATION MEAN FROM POL0 FIT
+  Double_t perr = fitgrpolr->GetParError(0);		//POLARIZATION MEAN ERROR FROM POL0 FIT
+  Double_t qamn = fitgrqasm->GetParameter(0);		//CHARGE ASYMMETRY MEAN
+  Double_t qaer = fitgrqasm->GetParError(0);		//CHARGE ASYMMETRY MEAN ERROR
   summary << std::setw(5) << RUNN << "  "
           << std::setw(8) << lrat << "  "
           << std::setw(8) << rrat << "  "
           << std::setw(6) << crat << "  "
           << std::setw(5) << arat << "  "
           << std::setw(6) << qrat << "  "
+          << std::setw(6) << clrt << "  "
           << std::setw(6) << std::setprecision(5) << aavg << "  "
           << std::setw(6) << std::setprecision(5) << aerr << "  "
           << std::setw(7) << std::setprecision(4) << pavg << "  "
-          << std::setw(7) << std::setprecision(4) << perr << "  " << endl;
+          << std::setw(7) << std::setprecision(4) << perr << "  "
+          << std::setw(7) << std::setprecision(4) << qamn << "  "
+          << std::setw(7) << std::setprecision(4) << qaer << "  "
+          << endl;
   summary.close();
+
+
+  //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // WRITE DATA STATS TO SQL DATABASE ON START ... THIS WAY RUN DATA IS INSERTED EVEN IF DATA IS BAD
+  TSQLServer * ServerEnd = TSQLServer::Connect("mysql://halladb/hamolpol","hamolpol_user","MYSQLPASS");
+  TString queryEnd = "";
+  queryEnd.Form("replace into moller_run (id_run,run_leftrate,run_rightrate,run_coinrate,run_accrate,run_bcm,run_clock,run_asym,run_asymerr,run_anpow,run_ptarg,run_pol,run_polerr,run_qasym,run_qasymerr) values (%d,%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f)",RUNN,lrat,rrat,crat,arat,qrat,clrt,aavg,aerr,anpow,ptar,pavg,perr,qamn,qaer);
+  TSQLResult * resultEnd = ServerEnd->Query(queryEnd.Data());
+  ServerEnd->Close();
 
 
   //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
