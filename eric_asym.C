@@ -49,6 +49,12 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
 
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  //PRINT OUTPUT
+  ofstream output;
+  output.open("ascii.out", ios::trunc);
+
+
+  ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //STRIP RUN NUMBER FROM FILE NAME
   std::string fnametrun = FILE.substr( FILE.find_last_of("\\/")+1 );
   std::string fnamecopy = fnametrun;
@@ -59,10 +65,12 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
   ss >> RUNN;
 
 
-  ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-  //PRINT OUTPUT
-  ofstream output;
-  output.open("ascii.out", ios::trunc);
+  //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // WRITE DATA STATS TO SQL DATABASE ON START ... THIS WAY RUN DATA IS INSERTED EVEN IF DATA IS BAD
+  TSQLServer* ServerStart = TSQLServer::Connect("mysql://halladb/hamolpol","hamolpol_user","MYSQLPASS");
+  TString queryStart(Form("replace into moller_run (id_run) values (%d)",RUNN));
+  TSQLResult* resultStart = ServerStart->Query(queryStart.Data());
+  ServerStart->Close();
 
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
