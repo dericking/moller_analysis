@@ -32,20 +32,21 @@ Bool_t isnonnum(char c){
   return !(c >= '0' && c <= '9');
 }
 
-void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ){
+void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ, Double_t ANPOW ){
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //ANALYSIS PARAMETERS
   const Bool_t b_printascii = false;
   const Int_t heln          = HELN;     //QUARTET(4) OCTET(8)
   const Int_t deln          = -1*DELAY; //HELICTY SIGNAL DELAY
-  const Int_t stksz         = 24;       //STACK SIZE
+  const Int_t stksz         = 48;       //STACK SIZE
 
   const Double_t tsettle    = 0.000090;       //90 MICROSECOND TSETTLE TIME
   const Double_t freq       = (Double_t)FREQ; //DATA COLLECTION FREQUENCY
   const Double_t gate       = 1./freq-tsettle;//ACTIVE GATE WHILE TAKING DATA
-  const Double_t anpow      = 0.77301;        //ANALYZING POWER
+  const Double_t anpow      = ANPOW;          //ANALYZING POWER
   const Double_t ptar       = 0.08012;        //TARGET POLARIZATION
+  const Double_t bcmped     = 5;              //BCM PEDESTAL --- NEED TO FINISH
 
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
