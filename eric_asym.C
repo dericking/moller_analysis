@@ -636,7 +636,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ, Double_t ANP
   //FITTING AND PLOTTING
   gStyle->SetOptFit(111);
 
-  TCanvas * cScalers = new TCanvas("cScalers","cScalers",1200,1200);
+  TCanvas * cScalers = new TCanvas("cScalers","cScalers",1500,1500);
   cScalers->Divide(3,3);
   cScalers->cd(1);
   gr_singl->Draw("AP");
@@ -653,7 +653,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ, Double_t ANP
   cScalers->cd(7);
   gr_singr2->Draw("AP");
 
-  TCanvas * cIncrements = new TCanvas("cIncrements","cIncrements",1200,800);
+  TCanvas * cIncrements = new TCanvas("cIncrements","cIncrements",1500,1000);
   Int_t sidebuff = 100;
   cIncrements->Divide(3,2);
   cIncrements->cd(1)->SetLogy();
@@ -675,7 +675,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ, Double_t ANP
   H[12]->GetXaxis()->SetRangeUser(H[3]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[3]->FindLastBinAbove ( 0. , 1 )+sidebuff);
   H[12]->Draw();
 
-  TCanvas * cIncrements2 = new TCanvas("cIncrements2","cIncrements2",1200,800);
+  TCanvas * cIncrements2 = new TCanvas("cIncrements2","cIncrements2",1500,1000);
   cIncrements2->Divide(3,2);
   cIncrements2->cd(1)->SetLogy();
   H[7]->GetXaxis()->SetRangeUser(H[7]->FindFirstBinAbove( 0. , 1 )-sidebuff,H[7]->FindLastBinAbove ( 0. , 1 )+sidebuff);
@@ -693,7 +693,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ, Double_t ANP
   H[11]->GetXaxis()->SetRangeUser(H[11]->FindFirstBinAbove( 0. , 1 )-400,H[11]->FindLastBinAbove ( 0. , 1 )+400);
   H[11]->Draw();
 
-  TCanvas * cAsymmetries = new TCanvas("cAsymmetries","cAsymmetries",1200,400);
+  TCanvas * cAsymmetries = new TCanvas("cAsymmetries","cAsymmetries",1500,500);
   Double_t bufffact = 0.1;
   cAsymmetries->Divide(2,1);
   cAsymmetries->cd(1);
@@ -716,55 +716,55 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ, Double_t ANP
                                 );
   H[6]->Draw();
 
-  TCanvas * cGrAsymmtry = new TCanvas("cGrAsymmtry","cGrAsymmtry",1200,400);
+  TCanvas * cGrAsymmtry = new TCanvas("cGrAsymmtry","cGrAsymmtry",1500,500);
   gr_asymm->Draw("AP");
   gr_asymm->Fit("pol0");
   TF1 * fitgrasym = gr_asymm->GetFunction("pol0");
   gr_asymm->Draw("AP");
 
-  TCanvas * cGrPolarizn = new TCanvas("cGrPolarizn","cGrPolarizn",1200,400);
+  TCanvas * cGrPolarizn = new TCanvas("cGrPolarizn","cGrPolarizn",1500,500);
   gr_polar->Draw("AP");
   gr_polar->Fit("pol0");
   TF1 * fitgrpolr = gr_polar->GetFunction("pol0");
   gr_polar->Draw("AP");
 
-  TCanvas * cGrCoinRate = new TCanvas("cGrCoinRate","cGrCoinRate",1200,400);
+  TCanvas * cGrCoinRate = new TCanvas("cGrCoinRate","cGrCoinRate",1500,500);
   gr_cnrat->Draw("AP");
   gr_cnrat->Fit("pol0");
   TF1 * fitgrcrat = gr_cnrat->GetFunction("pol0");
   gr_cnrat->Draw("AP");
 
-  TCanvas * cGrLeftRate = new TCanvas("cGrLeftRate","cGrLeftRate",1200,400);
+  TCanvas * cGrLeftRate = new TCanvas("cGrLeftRate","cGrLeftRate",1500,500);
   gr_slrat->Draw("AP");
   gr_slrat->Fit("pol0");
   TF1 * fitgrlrat = gr_slrat->GetFunction("pol0");
   gr_slrat->Draw("AP");
 
-  TCanvas * cGrRghtRate = new TCanvas("cGrRghtRate","cGrRghtRate",1200,400);
+  TCanvas * cGrRghtRate = new TCanvas("cGrRghtRate","cGrRghtRate",1500,500);
   gr_srrat->Draw("AP");
   gr_srrat->Fit("pol0");
   TF1 * fitgrrrat = gr_srrat->GetFunction("pol0");
   gr_srrat->Draw("AP");
 
-  TCanvas * cGrAccdRate = new TCanvas("cGrAccdRate","cGrAccdRate",1200,400);
+  TCanvas * cGrAccdRate = new TCanvas("cGrAccdRate","cGrAccdRate",1500,500);
   gr_acrat->Draw("AP");
   gr_acrat->Fit("pol0");
   TF1 * fitgrarat = gr_acrat->GetFunction("pol0");
   gr_acrat->Draw("AP");
 
-  TCanvas * cGrChrgAsym = new TCanvas("cGrChrgAsym","cGrChrgAsym",1200,400);
+  TCanvas * cGrChrgAsym = new TCanvas("cGrChrgAsym","cGrChrgAsym",1500,500);
   gr_qasym->Draw("AP");
   gr_qasym->Fit("pol0");
   TF1 * fitgrqasm = gr_qasym->GetFunction("pol0");
   gr_qasym->Draw("AP");
 
-  TCanvas * cGrChrgRate = new TCanvas("cGrChrgRate", "cGrChrgRate", 1200,400);
+  TCanvas * cGrChrgRate = new TCanvas("cGrChrgRate", "cGrChrgRate", 1500,500);
   gr_bcmtm->Draw("AP");
   gr_bcmtm->Fit("pol0");
   TF1 * fitgrqrat = gr_bcmtm->GetFunction("pol0");
   gr_bcmtm->Draw("AP");
 
-  TCanvas * cGrClockInc = new TCanvas("cGrClockInc", "cGrClockInc", 1200,400);
+  TCanvas * cGrClockInc = new TCanvas("cGrClockInc", "cGrClockInc", 1500,500);
   gr_clock->Draw("AP");
   gr_clock->Fit("pol0");
   TF1 * fitgrclck = gr_clock->GetFunction("pol0");
