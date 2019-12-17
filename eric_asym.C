@@ -854,20 +854,21 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ, Double_t ANP
   cGrClockInc->SaveAs(sSaveMiddlePage);
   cGrPolarizn->SaveAs(sSaveLastPage);
 
+  //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  //SAVE TO PNG -- WILL DISPLAY ON WEB IN NUMERICAL ORDER OF FIRST TWO DIGITS - SAVE ACCORDINGLY
   cScalers->SaveAs(     Form( "00_analysis_%i_scalers_graphs.png",RUNN) );
   cIncrements->SaveAs(  Form( "01_analysis_%i_increments_hists.png",RUNN) );
-  cAsymmetries->SaveAs( Form( "02_analysis_%i_asymmetry_hists.png",RUNN) );
-  cGrCoinRate->SaveAs(  Form( "03_analysis_%i_coin_rate_graph.png",RUNN) );
-  cGrLeftRate->SaveAs(  Form( "04_analysis_%i_left_rate_graph.png",RUNN) );
-  cGrRghtRate->SaveAs(  Form( "05_analysis_%i_right_rate_graph.png",RUNN) );
+  cIncrements2->SaveAs( Form( "02_analysis_%i_increments2_hist.png", RUNN) );
+  cGrLeftRate->SaveAs(  Form( "03_analysis_%i_left_rate_graph.png",RUNN) );
+  cGrRghtRate->SaveAs(  Form( "04_analysis_%i_right_rate_graph.png",RUNN) );
+  cGrCoinRate->SaveAs(  Form( "05_analysis_%i_coin_rate_graph.png",RUNN) );
   cGrAccdRate->SaveAs(  Form( "06_analysis_%i_accidental_rate_graph.png",RUNN) );
-  cGrAsymmtry->SaveAs(  Form( "07_analysis_%i_asymmetry_over_time_graph.png",RUNN) );
-  cGrPolarizn->SaveAs(  Form( "08_analysis_%i_polarization_over_time_graph.png",RUNN) );
-  cIncrements2->SaveAs( Form( "09_analysis_%i_increments2_hist.png", RUNN) );
-  cGrChrgRate->SaveAs(  Form( "10_analysis_%i_charge_rate_graph.png", RUNN) );
-  cGrClockInc->SaveAs(  Form( "11_analysis_%i_clock_increments_over_time_graph.png", RUNN) );
-  cGrChrgAsym->SaveAs(  Form( "12_analysis_%i_charge_asymmetry_over_time_graph.png",RUNN) );
-
+  cGrClockInc->SaveAs(  Form( "07_analysis_%i_clock_increments_over_time_graph.png", RUNN) );
+  cGrChrgRate->SaveAs(  Form( "08_analysis_%i_charge_rate_graph.png", RUNN) );
+  cGrChrgAsym->SaveAs(  Form( "09_analysis_%i_charge_asymmetry_over_time_graph.png",RUNN) );
+  cAsymmetries->SaveAs( Form( "10_analysis_%i_asymmetry_hists.png",RUNN) );
+  cGrAsymmtry->SaveAs(  Form( "11_analysis_%i_asymmetry_over_time_graph.png",RUNN) );
+  cGrPolarizn->SaveAs(  Form( "12_analysis_%i_polarization_over_time_graph.png",RUNN) );
 
   if(b_printascii) output.close();
   }
