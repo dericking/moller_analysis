@@ -52,7 +52,7 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ, Double_t ANP
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //PRINT OUTPUT
   ofstream output;
-  output.open("ascii.out", ios::trunc);
+  if(b_printascii) output.open("ascii.out", ios::trunc);
 
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
