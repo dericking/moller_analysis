@@ -67,10 +67,12 @@ void eric_asym(string FILE, Int_t HELN, Int_t DELAY, Double_t FREQ, Double_t ANP
 
 
   //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-  // WRITE DATA STATS TO SQL DATABASE ON START ... THIS WAY RUN DATA IS INSERTED EVEN IF DATA IS BAD
+  // WRITE DATA STATS TO SQL DATABASE ON START
   TSQLServer* ServerStart = TSQLServer::Connect("mysql://halladb/hamolpol","hamolpol_user","MYSQLPASS");
   TString queryStart(Form("replace into moller_run (id_run) values (%d)",RUNN));
   TSQLResult* resultStart = ServerStart->Query(queryStart.Data());
+  queryStart = Form("insert ignore into moller_run_details (id_rundet) values (%d)",RUNN);
+  resultStart = ServerStart->Query(queryStart.Data());
   ServerStart->Close();
 
 
