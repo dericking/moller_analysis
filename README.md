@@ -1,12 +1,10 @@
 # __MOLANA Analysis (2020 version)__
 Repository for MOLANA Analysis code.
 
-## How to use:
+## How to use run\_molana\_analysis.sh
 The sript *run_molana_analysis.sh* works out all the required coordination between ROOT macros, bash scripts and MOLANA decoder program.
 
-### *run_molana_analysis.sh*
-
-#### Getting Started
+### Getting Started
 Helpful for the usage of *run\_molana\_analysis* can be accessed by running the bash script with the _--help_ option.
 
 There exists a persistent configuration file that currently only contains the following information: 
@@ -25,7 +23,7 @@ For example:
 
 Will (when done) fix those values in the persistent configuration file.
 
-#### Analysis
+### Analysis
 
  *run\_molana\_analysis.sh* *--run 18915*
 
@@ -45,25 +43,25 @@ The above command will analyze all runs in the specified span. Again, if they ar
 
 The above command will force the batch run to use the new specified parameters.
 
-#### Bleedthrough Runs
+### Bleedthrough Runs
 
 Bleedthrough runs should be handled as follows:
 
 *run_molana_analysis.sh* *--run 18915 --bleed*
 
-### molana_increments.C()
+## molana_increments.C()
 
 Update with brief explanation of ROOT script.
 
-### molana_analyssis.C()
+## molana_analyssis.C()
 
 Update with brief explanation of ROOT script.
 
-### molana_bleedthrough.C()
+## molana_bleedthrough.C()
 
 Update with brief explanation of ROOT script.
 
-## Important information: 
+# Important information: 
 
 These scripts require the use of the following environmental variables:
 
