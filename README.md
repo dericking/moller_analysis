@@ -1,4 +1,4 @@
-# MOLANA Analysis (2020 version)
+# __MOLANA Analysis (2020 version)__
 Repository for MOLANA Analysis code.
 
 ## How to use:
