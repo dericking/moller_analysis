@@ -7,10 +7,12 @@ else
 ENDRUN=${2}
 fi
 
+ROOTDIR=${MOLLER_ROOTFILE_DIR} #THINGS GO HERE
 DATADIR=${MOLLER_DATA_DIR}
-SETSDIR=${MOLLER_SETTINGS_DIR}
+SETSDIR=/adaqfs/home/moller/daq/coda2/RunInfo
 
 for i in $(seq $STARTRUN $ENDRUN);do
+    echo "Copying ${SETSDIR}/mollerrun_${i}.set to $DATADIR";
     SETFILE=${SETSDIR}/mollerrun_${i}.set
-    cp $SETFILE $FILEDIR/
+    cp $SETFILE $ROOTDIR
 done

@@ -119,9 +119,9 @@ function checkconfig(){
 
 function createconfig(){
     rm -f ${CFGFILE};
-    local LASTRUNN=$(mysql -h ${MDBHOST} --user="${MDBUSER}" --password="${MDBPASS}" --database="${MDBNAME}" --skip-column-names -e "SELECT id_run FROM moller_run WHERE run_anpow IS NOT NULL AND run_qped_used IS NOT NULL AND run_ptarg > 0. AND run_ptarg IS NOT NULL ORDER BY id_run DESC LIMIT 1;")
+    local LASTRUNN=$(mysql -h ${MDBHOST} --user="${MDBUSER}" --password="${MDBPASS}" --database="${MDBNAME}" --skip-column-names -e "SELECT id_run FROM moller_run WHERE run_anpow IS NOT NULL AND run_qpedused IS NOT NULL AND run_ptarg > 0. AND run_ptarg IS NOT NULL ORDER BY id_run DESC LIMIT 1;")
     local LASTANPW=$(mysql -h ${MDBHOST} --user="${MDBUSER}" --password="${MDBPASS}" --database="${MDBNAME}" --skip-column-names -e "SELECT run_anpow FROM moller_run WHERE id_run = ${LASTRUNN};")
-    local LASTQPED=$(mysql -h ${MDBHOST} --user="${MDBUSER}" --password="${MDBPASS}" --database="${MDBNAME}" --skip-column-names -e "SELECT run_qped_used FROM moller_run WHERE id_run = ${LASTRUNN};")
+    local LASTQPED=$(mysql -h ${MDBHOST} --user="${MDBUSER}" --password="${MDBPASS}" --database="${MDBNAME}" --skip-column-names -e "SELECT run_qpedused FROM moller_run WHERE id_run = ${LASTRUNN};")
     local LASTPTAR=$(mysql -h ${MDBHOST} --user="${MDBUSER}" --password="${MDBPASS}" --database="${MDBNAME}" --skip-column-names -e "SELECT run_ptarg FROM moller_run WHERE id_run = ${LASTRUNN};")
     CFLINE1="CFGAPOW=${LASTANPW}";
     CFLINE2="CFGQPED=${LASTQPED}";
@@ -203,9 +203,6 @@ rm -f *.pdf
 
 echo "run_molana_analysis() ==> Starting analysis for ${START} to ${ENDAT}"
 
-####################################################################################################################################
-##exit;
-
 for (( ANALRUN=${START}; ANALRUN<=${ENDAT}; ANALRUN++ )); do
     ##WHERE ARE THE FILES THAT WE NEED LOCATED?
     SETFILE="${MROOTDR}/mollerrun_${ANALRUN}.set"
@@ -224,6 +221,7 @@ for (( ANALRUN=${START}; ANALRUN<=${ENDAT}; ANALRUN++ )); do
         echo "run_molana_analysis() ==> Needed MOLANA data file exists..."
     else
         echo "run_molana_analysis() ==> Making MOLANA data file..."
+        ./populate_settings_in_molpol_db.sh ${ANALRUN}
         ${ANALDIR}/molana ${ANALRUN}
     fi
 
@@ -263,15 +261,17 @@ for (( ANALRUN=${START}; ANALRUN<=${ENDAT}; ANALRUN++ )); do
         ##IF NOT FORCING VALUES GET THEM FROM DB
         if [[ -z "${FORCE}" || "${FORCE}"="false" ]]; then
             ANPOWER=$(mysql -h ${MDBHOST} --user="${MDBUSER}" --password="${MDBPASS}" --database="${MDBNAME}" --skip-column-names -e "SELECT run_anpow FROM moller_run WHERE id_run=${ANALRUN};")
-            echo "run_molana_analysis() ==> Returned ANPOWER from hamolpol moller_run table is: ${ANPOWER}"
+            echo "run_molana_analysis() ==> Returned ANPOWER from hamolpol moller_run table is: ${ANPOWER}";
             if [[ -z "$ANPOWER" || "$ANPOWER" == "NULL" ]]; then
                ANPOWER=${ANALPOW} #OLD RUN RETURNS NO ANALYSING POWER ASSIGNED... USE DEFAULT TO FIND EASILY IN DATABASE AND CORRECT
             fi
-            CHRGPED=$(mysql -h ${MDBHOST} --user="${MDBUSER}" --password="${MDBPASS}" --database="${MDBNAME}" --skip-column-names -e "SELECT run_qped_used FROM moller_run WHERE id_run = ${ANALRUN};")
+            CHRGPED=$(mysql -h ${MDBHOST} --user="${MDBUSER}" --password="${MDBPASS}" --database="${MDBNAME}" --skip-column-names -e "SELECT run_qpedused FROM moller_run WHERE id_run = ${ANALRUN};")
+            echo "run_molana_analysis() ==> Returned CHRGPED from hamolpol moller_run table is: ${CHRGPED}"
             if [[ -z "$CHRGPED" || "$CHRGPED" == "NULL" ]]; then
                CHRGPED=0
             fi
             TARGPOL=$(mysql -h ${MDBHOST} --user="${MDBUSER}" --password="${MDBPASS}" --database="${MDBNAME}" --skip-column-names -e "SELECT run_ptarg FROM moller_run WHERE id_run = ${ANALRUN};")
+            echo "run_molana_analysis() ==> Returned TARGPOL from hamolpol moller_run table is: ${TARGPOL}"
             if [[ -z "$TARGPOL" || "$TARGPOL" == "NULL" ]]; then
                TARGPOL=${TARGDEF}
             fi
@@ -279,12 +279,29 @@ for (( ANALRUN=${START}; ANALRUN<=${ENDAT}; ANALRUN++ )); do
 
         . ${CFGFILE};
 
+        #############################################################################################################
+        #############################################################################################################
+        #############################################################################################################
+        #############################################################################################################
+        ANPOWER=$(mysql -h ${MDBHOST} --user="${MDBUSER}" --password="${MDBPASS}" --database="${MDBNAME}" --skip-column-names -e "SELECT rundet_anpow FROM moller_run_details WHERE id_rundet=${ANALRUN};")
+        if [[ -z "$ANPOWER" || "$ANPOWER" == "NULL" ]]; then ANPOWER=${ANALPOW}; fi
+        CHRGPED=$(mysql -h ${MDBHOST} --user="${MDBUSER}" --password="${MDBPASS}" --database="${MDBNAME}" --skip-column-names -e "SELECT rundet_qpedset FROM moller_run_details WHERE id_rundet=${ANALRUN};")
+        if [[ -z "$CHRGPED" || "$CHRGPED" == "NULL" ]]; then CHRGPED=0; fi
+        #############################################################################################################
+        #############################################################################################################
+        #############################################################################################################
+        #############################################################################################################
+
+
+
+
         ##IF FORCE FORCEANPOW FORCEQPED OR FORCEPTARG
-	if [[ "${FORCEAP}" == true || "${FORCE}" == true ]]; then ANPOWER=${CFGAPOW}; fi
-	if [[ "${FORCEQP}" == true || "${FORCE}" == true ]]; then CHRGPED=${CFGQPED}; fi
-	if [[ "${FORCETP}" == true || "${FORCE}" == true ]]; then TARGPOL=${CFGPTAR}; fi
+	if [[ "${FORCEAP}" == true || "${FORCE}" == true ]]; then ANPOWER=${CFGAPOW}; echo "run_molana_analysis() ==> Forced ANPOWER is: ${ANPOWER}"; fi
+	if [[ "${FORCEQP}" == true || "${FORCE}" == true ]]; then CHRGPED=${CFGQPED}; echo "run_molana_analysis() ==> Forced CHRGPED is: ${CHRGPED}"; fi
+	if [[ "${FORCETP}" == true || "${FORCE}" == true ]]; then TARGPOL=${CFGPTAR}; echo "run_molana_analysis() ==> Forced TARGPOL is: ${TARGPOL}"; fi
 
         ##ECHO THE VALUES OBTAINED
+        echo "run_molana_analysis() ==> **** Ready to analyze $ANALRUN! :) ****"
         echo "run_molana_analysis() ==> Data file: ${DATFILE}"
         echo "run_molana_analysis() ==> H.Pattern: ${PATTERN}"
         echo "run_molana_analysis() ==> Frequency: ${FREQNCY}"
@@ -307,12 +324,16 @@ for (( ANALRUN=${START}; ANALRUN<=${ENDAT}; ANALRUN++ )); do
             mysql -h ${MDBHOST} --user="${MDBUSER}" --password="${MDBPASS}" --database="${MDBNAME}" --skip-column-names -e "INSERT IGNORE INTO moller_run_details (id_rundet,rundet_day,rundet_type) VALUES (${ANALRUN},'${RUNDATE}','${RUNTYPE}');"
         fi
 
+        echo "run_molana_analysis() ==> Runtype is ${RUNTYPE}"
+
         ##RUN ANALYSIS
         if [[ "$RUNTYPE" == "bleed_through" || "${ISBLEED}" == true ]]; then
           echo "run_molana_analysis() ==> Running molana_bleedthrough..."
           root -b -l -q "molana_bleedthrough.C+(\""${INCFILE}"\",${FREQNCY},0)"
         else
+          echo "run_molana_analysis() ==> Running molana analysis and bleedthrough..."
           root -b -l -q "molana_analysis.C+(\""${INCFILE}"\","${PATTERN}","${FREQNCY}","${ANPOWER}","${CHRGPED}")"
+          root -b -l -q "molana_bleedthrough.C+(\""${INCFILE}"\",${FREQNCY},1)"
         fi
       
         ##DOES THE DIRECTORY FOR THE RUN EXIST FOR THE OUTPUT IMAGES?
@@ -337,4 +358,20 @@ for (( ANALRUN=${START}; ANALRUN<=${ENDAT}; ANALRUN++ )); do
 done
 
 ./run_print_prompt_stats.sh
+
+############################
+############################
+#
+#   (1) SPIT OUT THE DISTINCT GROUPS OF BEAM_POL FALSE_ASYM AND SPIN_DANCE TYPES INTO FILE
+#   (2) READ GROUPS FROM FILE AND QUERY DATABASE FOR LIST OF RUNS (EVENTUALLY RUNS MARKED AS GOOD) IN EACH GROUP
+#   (3) RUN MOLANA GROUPS AND DEPOSIT OUTPUT INTO GROUPS FOLDER
+#   (4) UPDATE WEBSITE TO PULL THESE IMAGES   
+#   (5) MUST PRINT IMAGES TO PNG IN GROUP ANALYSIS
+#
+#   mysql -h $MOLANA_DB_HOST --user="$MOLANA_DB_USER" --password="$MOLANA_DB_PASS" --database="$MOLANA_DB_NAME" --skip-column-names -e "select id_rundet from moller_run_details where rundet_pcrex_group = 1097;" | paste -sd ,
+#
+#   select distinct FLOOR(rundet_pcrex_group) from moller_run_details where rundet_type = "beam_pol" or rundet_type = "false_asym" or rundet_type = "spin_dance";
+#
+############################
+############################
 

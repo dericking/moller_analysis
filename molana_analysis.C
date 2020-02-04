@@ -40,7 +40,7 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
   //ANALYSIS PARAMETERS
   Bool_t   writetopdf = false;           //SAVE RESULTS ALSO IN PDF
   Bool_t   writetosql = true;            //WRITE RESULTS TO SQL DATABASE
-  Bool_t   printascii = false;           //PRINT THE STACKS TO ASCII FILE FOR VISUAL INSPECTION
+  Bool_t   printascii = true;           //PRINT THE STACKS TO ASCII FILE FOR VISUAL INSPECTION
   const Int_t    heln       = HELN;      //QUARTET(4) OCTET(8)
   const Int_t    stksz      = HELN*10+1; //STACK SIZE 10 CYCLES
 
@@ -49,7 +49,10 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
   const Double_t gate       = 1./freq-tsettle;//ACTIVE GATE WHILE TAKING DATA
   const Double_t anpow      = ANPOW;          //ANALYZING POWER
   const Double_t ptar       = 0.08012;        //TARGET POLARIZATION
-  const Double_t bcmped     = 5;              //BCM PEDESTAL --- TODO: NEED TO FINISH
+  const Int_t    bcmped     = QPED;           //BCM PEDESTAL
+
+  cout << "molana_anaysis.C() ==> Analyzing power set is: " << anpow << endl;
+  cout << "molana_anaysis.C() ==> Charge pedestal set is: " << bcmped << endl;
 
   Int_t          skippatts  = 1;              //HOW MANY PATTERNS TO SKIP AFTER BAD PATTERN PLUS ONE [i.e. 2 WILL SKIP 1 PATTERN]
 
@@ -360,7 +363,7 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // CYCLE TOSSING
   // WHEN YOU ADD AN ERROR -- INCREMENT 'ne', GIVE IT A NAME IN 'errname' (for printout)
-  const Int_t ne = 12;
+  const Int_t ne = 13;
   Int_t errcnts[ne];
   for(Int_t i = 0; i < ne; i++) errcnts[i] = 0;
   const char * errname[ne][100] = {"Incorrect # of Cycles in Helicity Pattern ",
@@ -374,7 +377,8 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
                                    "Accidentals Increment Issue ",
                                    "Negative Singles Left Increment Scaler 2 ",
                                    "Negative Singles Right Inrcement Scaler 2 ",
-                                   "Clock Increment Problem "
+                                   "Clock Increment Problem ",
+                                   "Accid > Coin (Low-coin-rate Issue)"
                                    };
 
 
@@ -602,7 +606,7 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
     singr1_stk[entry%stksz]          = singr1;
     coinc1_stk[entry%stksz]          = coinc1;
     accid1_stk[entry%stksz]          = accid1;
-    bcm_stk[entry%stksz]             = bcm;
+    bcm_stk[entry%stksz]             = bcm - bcmped;    //charge pedestal subtraction
     ledflash_stk[entry%stksz]        = ledflash;
     clockheltrig_stk[entry%stksz]    = clockheltrig;
     mps_stk[entry%stksz]             = mps;
@@ -633,7 +637,7 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
     r1scalsum += singr1;              //RIGHT SCALER SUM
     c1scalsum += coinc1;              //COINC SCALER SUM
     a1scalsum += accid1;              //ACCID SCALER SUM
-    bcmscalsm += bcm;                 //BCM SCALER SUM
+    bcmscalsm += bcm - bcmped;        //BCM SCALER SUM
     clkscalsm += clocktimer;          //CLOCK SCALER SUM
     gr_sngl1->SetPoint( entry, entry, (Double_t)l1scalsum );
     gr_sngr1->SetPoint( entry, entry, (Double_t)r1scalsum );
@@ -679,6 +683,11 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
       errcnts[8]++;
       if(printascii) output << "[" << entry << "] ERROR Accidental Scaler Issue" << endl;
     }
+    if( accid1 > coinc1 ){                  //ACCID > COIN? ISSUE WITH LOW RATE SCANS
+      goodhelpatt = -1*skippatt;             //WILL BE A RARE EVENT IN DATA WHICH
+      errcnts[12]++;                         //ISN'T INTENDED TO BE USED FOR POLZN
+      if(printascii) output << "[" << entry << "] ERROR Accidental > Coin " << endl;
+    }
 
     if(clockheltrig > 0){                    //DO SCALER AND TRIGGER HELICITIES MATCH?
       clockheltrig /= clockheltrig;
@@ -691,7 +700,7 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
 
     if( clocktimer < (expclock*0.95) || clocktimer > (expclock*1.05) ){//IS CLOCK INCREMENT ACCEPTABLE?
       goodhelpatt = -1*skippatt;
-      errcnts[11]++; //FIXME: WRONG ERROR CODE
+      errcnts[11]++; //FIXME: WRONG ERROR CODE?
       if(printascii) output << "[" << entry << "] ERROR Clock Discrepency" << endl;
     }
     if( bcm < 0 ){                            //NEGATIVE INCREMENT SIGNIFIES A SCALAR PROBLEM
@@ -851,15 +860,21 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
       Double_t asymu = (dhelsumu[1] - dhelsumu[0])/(dhelsumu[1] + dhelsumu[0]);
       Double_t asymc = (dhelsumc[1] - dhelsumc[0])/(dhelsumc[1] + dhelsumc[0]);
       Double_t qasym = ( ( (Double_t)bcmsums[1]-(Double_t)bcmsums[0] ) / ( (Double_t)bcmsums[1]+(Double_t)bcmsums[0] ) );
-      //(4) FILL HISTOGRAMS :)
-      H[14]->Fill(asymu);
-      H[15]->Fill(asymc);
-      H[16]->Fill(qasym);
-      //(5) FILL ASYM:ENTRY$, POL:ENTRY$, QASYM:ENTRY$ GRAPHS
-      gr_asymm->SetPoint(grpattctr,fileeventnumber_stk[goodpattindex],asymc);
-      gr_polar->SetPoint(grpattctr,fileeventnumber_stk[goodpattindex],asymc/(ptar*anpow));
-      gr_qasym->SetPoint(grpattctr,fileeventnumber_stk[goodpattindex],qasym);
-      grpattctr++;
+
+      //IN LOW COIN SITUATIONS, PERHAPS DURING SCAN, WE CAN END UP WITH A 0/0 NAN CASE, IF ASYMU/C ARE NAN WE WANT 
+      //TO SKIP POPULATING THE HIST/GRAPHS AND MOVE ON.
+      if( !(::isnan(asymu) || ::isnan(asymc) || ::isnan(qasym) ) ){
+        //(4) FILL HISTOGRAMS :)
+        H[14]->Fill(asymu);
+        H[15]->Fill(asymc);
+        H[16]->Fill(qasym);
+        //(5) FILL ASYM:ENTRY$, POL:ENTRY$, QASYM:ENTRY$ GRAPHS
+        gr_asymm->SetPoint(grpattctr,fileeventnumber_stk[goodpattindex],asymc);
+        gr_polar->SetPoint(grpattctr,fileeventnumber_stk[goodpattindex],asymc/(ptar*anpow));
+        gr_qasym->SetPoint(grpattctr,fileeventnumber_stk[goodpattindex],qasym);
+        grpattctr++;
+      }
+
       //PRINT OUT THE SUMS AND CALCULATED ASYMMETRIES
       if(printascii){
         output << "      --> helsumu[0]: " << std::setw(7) << helsumu[0]
@@ -924,6 +939,61 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
     }//END ASYMMETRY CALCULATION IF(goodhelpatt > skippatt)
  
   }//END OF FOR(ENTRIES)
+
+  //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+  // PRINT ERRORS
+  ofstream errorsummary;
+  std::stringstream sseof;
+  sseof << "errors_" << RUNN << ".txt";
+  //cout << "writing error summary to file name: " << (sseof.str()).c_str() << endl;
+  errorsummary.open( (sseof.str()).c_str() );
+  errorsummary << "Reasons/Errors for Cycles Discarded: " << endl;
+  errorsummary << "  Total root file entries: " << nentries << endl;
+  for(Int_t j = 0; j <= ne; j++){
+    if( j >= ne ) break;  //SAFETY STATEMENT, WAS CROSSING 'ne' FOR SOME REASON.
+    errorsummary << "  " << (*errname)[j] << ": " << errcnts[j] << endl;
+  }
+  errorsummary.close();
+
+  if(grpattctr == 0){//TODO: COME UP WITH A BETTER FIX THAN THIS. SHOULD PROBABLY REPORT CLOCK, ANPOW, QPED, ETC
+
+    //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+    // WRITE DATA STATS TO SQL DATABASE ON START ... THIS WAY RUN DATA IS INSERTED EVEN IF DATA IS BAD
+    if(writetosql){
+      cout << "molana_anaysis.C() ==> Writing prompt stats to " << db_host << "." << endl;
+      TSQLServer * ServerEnd = TSQLServer::Connect(db_host,db_user,db_pass);
+      TString queryEnd = "";
+      queryEnd.Form("replace into moller_run (id_run,run_leftrate,run_rightrate,run_coinrate,run_accrate,run_bcm,run_clock,run_asym,run_asymerr,run_anpow,run_ptarg,run_pol,run_polerr,run_qasym,run_qasymerr) values (%d,%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f)",RUNN,0,0,0,0,0,0,0.,0.,0.,0.,0.,0.,0.,0.);
+      TSQLResult * resultEnd = ServerEnd->Query(queryEnd.Data());
+      ServerEnd->Close();
+    }
+    exit(0);
+    //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+    // SAVE RUN DATA SUMMARY -- RUN,SINGL,SINGR,COINC,ACCID,BCM,ASYM,ASYMERR,POL,POLERR
+    ofstream summary;
+    std::stringstream ssof;
+    ssof << "molana_prompt_stats_" << RUNN;
+    //cout << "writing stats summary to file name: " << (ssof.str()).c_str() << endl;
+    summary.open( (ssof.str()).c_str() );
+    summary << "  RUN      LEFT     RIGHT    COIN    ACCD     BCM   CLOCK      ASYM    AERR        POL   POLERR       A_Q     A_QERR" << endl;
+    summary << std::fixed 
+          << std::setw(5) << RUNN << "  "
+          << std::setw(8) << "0  "
+          << std::setw(8) << "0  "
+          << std::setw(6) << "0  "
+          << std::setw(6) << "0  "
+          << std::setw(6) << "0  "
+          << std::setw(6) << "0  "
+          << std::setw(8) << std::setprecision(5) << "0  "
+          << std::setw(8) << std::setprecision(5) << "0  "
+          << std::setw(7) << std::setprecision(4) << "0  "
+          << std::setw(7) << std::setprecision(4) << "0  "
+          << std::setw(8) << std::setprecision(5) << "0  "
+          << std::setw(8) << std::setprecision(5) << "0  "
+          << endl;
+    summary.close();
+
+  }
 
   fout->Write();
 
@@ -1082,7 +1152,7 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
   ssof << "molana_prompt_stats_" << RUNN;
   //cout << "writing stats summary to file name: " << (ssof.str()).c_str() << endl;
   summary.open( (ssof.str()).c_str() );
-  summary << "  RUN      LEFT     RIGHT    COIN    ACCD     BCM   CLOCK      ASYM    AERR        POL   POLERR       A_Q     A_QERR" << endl;
+  summary << "  RUN      LEFT     RIGHT    COIN    ACCD     BCM   CLOCK      ASYM      AERR      POL   POLERR       A_Q    A_QERR   AZZUSED  QPED" << endl;
   Int_t    lrat = (Int_t)(fitgrlrat->GetParameter(0) );	//LEFT SINGLES RATE
   Int_t    rrat = (Int_t)(fitgrrrat->GetParameter(0) );	//RIGHT SINGLES RATE
   Int_t    crat = (Int_t)(fitgrcrat->GetParameter(0) ); //COINCIDENCE RATE
@@ -1109,6 +1179,8 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
           << std::setw(7) << std::setprecision(4) << perr << "  "
           << std::setw(8) << std::setprecision(5) << qamn << "  "
           << std::setw(8) << std::setprecision(5) << qaer << "  "
+          << std::setw(8) << std::setprecision(5) << anpow << "  "
+          << std::setw(4) << std::setprecision(5) << bcmped << "  "
           << endl;
   summary.close();
 
@@ -1166,25 +1238,9 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
     cout << "molana_anaysis.C() ==> Writing prompt stats to " << db_host << "." << endl;
     TSQLServer * ServerEnd = TSQLServer::Connect(db_host,db_user,db_pass);
     TString queryEnd = "";
-    queryEnd.Form("replace into moller_run (id_run,run_leftrate,run_rightrate,run_coinrate,run_accrate,run_bcm,run_clock,run_asym,run_asymerr,run_anpow,run_ptarg,run_pol,run_polerr,run_qasym,run_qasymerr) values (%d,%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f)",RUNN,lrat,rrat,crat,arat,qrat,clrt,aavg,aerr,anpow,ptar,pavg,perr,qamn,qaer);
+    queryEnd.Form("replace into moller_run (id_run,run_leftrate,run_rightrate,run_coinrate,run_accrate,run_bcm,run_qpedused,run_clock,run_asym,run_asymerr,run_anpow,run_ptarg,run_pol,run_polerr,run_qasym,run_qasymerr) values (%d,%d,%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f)",RUNN,lrat,rrat,crat,arat,qrat,bcmped,clrt,aavg,aerr,anpow,ptar,pavg,perr,qamn,qaer);
     TSQLResult * resultEnd = ServerEnd->Query(queryEnd.Data());
     ServerEnd->Close();
   }
-
-
-  //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-  // PRINT ERRORS
-  ofstream errorsummary;
-  std::stringstream sseof;
-  sseof << "errors_" << RUNN << ".txt";
-  //cout << "writing error summary to file name: " << (sseof.str()).c_str() << endl;
-  errorsummary.open( (sseof.str()).c_str() );
-  errorsummary << "Reasons/Errors for Cycles Discarded: " << endl;
-  errorsummary << "  Total root file entries: " << nentries << endl;
-  for(Int_t j = 0; j <= ne; j++){
-    if( j >= ne ) break;  //SAFETY STATEMENT, WAS CROSSING 'ne' FOR SOME REASON.
-    errorsummary << "  " << (*errname)[j] << ": " << errcnts[j] << endl;
-  }
-  errorsummary.close();
 
 }

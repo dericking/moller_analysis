@@ -6,3 +6,7 @@
 analysis/
 analysis*/
 moller_data_temp/
+
+*.pcm
+*.d
+*.so

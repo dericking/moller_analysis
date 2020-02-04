@@ -1,13 +1,10 @@
-# MOLANA Analysis
-## 2020 version
-Repository for MOLANA Analysis code.
+# __MOLANA Analysis (2020 version)__
+Repository for **MOLANA** Analysis code. This code is to be used in conjunction with Don Jones' **MOLANA** [raw data decoder](https://github.com/jonesdc76/moller_analyser). This version of the code is intended to be used with a persistent database that maintains prompt results.
 
-### How to use:
+## How to use run\_molana\_analysis.sh
 The sript *run_molana_analysis.sh* works out all the required coordination between ROOT macros, bash scripts and MOLANA decoder program.
 
-#### *run_molana_analysis.sh*
-
-##### Getting Started
+### Getting Started
 Helpful for the usage of *run\_molana\_analysis* can be accessed by running the bash script with the _--help_ option.
 
 There exists a persistent configuration file that currently only contains the following information: 
@@ -26,7 +23,7 @@ For example:
 
 Will (when done) fix those values in the persistent configuration file.
 
-##### Analysis
+### Analysis
 
  *run\_molana\_analysis.sh* *--run 18915*
 
@@ -46,36 +43,44 @@ The above command will analyze all runs in the specified span. Again, if they ar
 
 The above command will force the batch run to use the new specified parameters.
 
-##### Bleedthrough Runs
+### Bleedthrough Runs
 
 Bleedthrough runs should be handled as follows:
 
-*run_molana_analysis.sh* *--run 18915 --bleed*
+*run_molana_analysis.sh --run 18915 --bleed*
 
-#### molana_increments.C()
+Bleedthough results will be written to the database of prompt analysis results.
 
-Update with brief explanation of ROOT script.
+## Using molana_increments.C()
 
-#### molana_analyssis.C()
+*void molana_increments(string FILE, const Int_t DELAY)*
 
-Update with brief explanation of ROOT script.
+Molana increments root macro takes the converted root file of the raw data decoded by Don Jones' MOLANA raw decoder. The macro takes two arguements: Location of the file to be analyzed; and helicity delay. Molana increments calculates up the increments between helicity cycles, removes the helicity delay between the helicity patter and the data and writes a new file called *molana_increments_NNNNN.root* which can then be read by the molana analysis script.
 
-#### molana_bleedthrough.C()
+## Using molana_analysis.C()
 
-Update with brief explanation of ROOT script.
+*molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Double_t QPED )*
 
-### Important information: 
+Molana analysis root macro takes 5 arguments: Location of the *molana_increments_NNNNN.root* file to be read; helicity pattern type; helicity frequency; analyzing power; and charge pedestal. This can be run on its own in standard ROOT fashion. When run as standalone the script will produce PNG files and an errors text file in the directory which it resides. The script will push prompt analysis results to the specified database.
+
+## Using molana_bleedthrough.C()
+
+molana_bleedthrough(string FILE, Double_t FREQ, Bool_t BEAM )
+
+Molana bleedthrough root macro takes 3 arguments: File location; helicity frequency; and beam status. It analyzes, on a helicity cycle basis, both charge pedestal and bleedthrough rates. When beam is off [BEAM = 0] the script proceeds guaranteed that the beam was not on and spits out *charge pedestal* **and** *bleedthrough rates*. When beam is on [BEAM = 1] the script looks for times when beam is off on the conditions: *bcm < (bcm_mean - 5 sigma)* **and** *coin < (coin_mean - 3 sigma)*. This has produced reliable results of finding beam trips from which the *charge pedestal* is calculated.
+
+# Important information: 
 
 These scripts require the use of the following environmental variables:
 
-* MOLLER\_ROOTFILE\_DIR (Also required by the MOLANA raw data decoder)
-* MOLLER\_DATA\_DIR (Also required by the MOLANA raw data decoder)
+* MOLLER\_ROOTFILE\_DIR   (Also required by the MOLANA raw data decoder)
+* MOLLER\_DATA\_DIR       (Also required by the MOLANA raw data decoder)
 
-* MOLANA\_DB\_HOST
-* MOLANA\_DB\_USER
-* MOLANA\_DB\_PASS
-* MOLANA\_DB\_NAME
+* MOLANA\_DB\_HOST (Used by *run_molana_analysis.sh*, *molana_analysis.C* and *molana_bleedthrough.C* )
+* MOLANA\_DB\_USER (Used by *run_molana_analysis.sh*, *molana_analysis.C* and *molana_bleedthrough.C* )
+* MOLANA\_DB\_PASS (Used by *run_molana_analysis.sh*, *molana_analysis.C* and *molana_bleedthrough.C* )
+* MOLANA\_DB\_NAME (Used by *run_molana_analysis.sh*, *molana_analysis.C* and *molana_bleedthrough.C* )
 
-* MOLLER\_SETTINGS\_DIR
-* MOLANA\_DATADECODER\_DIR
-* MOLANA\_ONLINE\_PUSH\_DIR
+* MOLLER\_SETTINGS\_DIR      (Where does the DAQ throw the *mollerrun_NNNNN.set* files?)
+* MOLANA\_DATADECODER\_DIR   (Where is Don Jones' MOLANA raw decoder located)
+* MOLANA\_ONLINE\_PUSH\_DIR  (Where should *run_molana_analysis.sh* push PNG results to?)

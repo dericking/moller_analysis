@@ -544,10 +544,12 @@ void molana_bleedthrough(string FILE, Double_t FREQ, Bool_t BEAM ){
     cout << "molana_bleedthrough.C() ==> Writing prompt stats to " << db_host << "." << endl;
     TSQLServer * ServerEnd = TSQLServer::Connect(db_host,db_user,db_pass);
     TString queryEnd1 = "";
-    queryEnd1.Form("replace into moller_run (id_run,run_leftrate,run_rightrate,run_coinrate,run_accrate,run_bcm,run_clock,run_asym,run_asymerr,run_anpow,run_ptarg,run_pol,run_polerr,run_qasym,run_qasymerr) values (%d,%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f)",RUNN,lrat,rrat,crat,arat,qrat,clrt,aavg,aerr,anpow,ptar,pavg,perr,qamn,qaer);
+    queryEnd1.Form("replace into moller_run (id_run,run_leftrate,run_rightrate,run_coinrate,run_accrate,run_bcm,run_qpedused,run_clock,run_asym,run_asymerr,run_anpow,run_ptarg,run_pol,run_polerr,run_qasym,run_qasymerr) values (%d,%d,%d,%d,%d,%d,%d,0,%f,%f,%f,%f,%f,%f,%f,%f)",RUNN,lrat,rrat,crat,arat,qrat,clrt,aavg,aerr,anpow,ptar,pavg,perr,qamn,qaer);
+    cout << queryEnd1 << endl;
     TSQLResult * resultEnd1 = ServerEnd->Query(queryEnd1.Data());
+    cout << "molana_bleedthrough.C() ==> Writing charge pedestal from bleedthrough to " << db_host << "." << endl;
     TString queryEnd2 = "";
-    queryEnd2.Form("update moller_run_details set rundet_qped = %f WHERE id_rundet = %d",H[2]->GetMean(),RUNN);
+    queryEnd2.Form("update moller_run set run_qpedcalc = %f WHERE id_run = %d",H[2]->GetMean(),RUNN);
     TSQLResult * resultEnd2 = ServerEnd->Query(queryEnd2.Data());
     ServerEnd->Close();
   }
@@ -555,7 +557,7 @@ void molana_bleedthrough(string FILE, Double_t FREQ, Bool_t BEAM ){
     cout << "molana_bleedthrough.C() ==> Recording charge pedestal calc'd from beam trips during run to " << db_host << "." << endl;
     TSQLServer * ServerEnd = TSQLServer::Connect(db_host,db_user,db_pass);
     TString queryEnd = "";
-    queryEnd.Form("update moller_run_details set rundet_qped = %f WHERE id_rundet = %d",H[2]->GetMean(),RUNN);
+    queryEnd.Form("update moller_run set run_qpedcalc = %f WHERE id_run = %d",H[2]->GetMean(),RUNN);
     TSQLResult * resultEnd = ServerEnd->Query(queryEnd.Data());
     ServerEnd->Close();
   }
