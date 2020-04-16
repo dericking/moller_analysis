@@ -29,27 +29,28 @@
 #include<iostream>
 #include<sstream>
 #include<fstream>
+#include<bitset>
 
 Bool_t isnonnumber(char c){
   return !(c >= '0' && c <= '9');
 }
 
-void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Double_t QPED ){
+Int_t molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Double_t QPED ){
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   //ANALYSIS PARAMETERS
-  Bool_t   writetopdf = false;           //SAVE RESULTS ALSO IN PDF
-  Bool_t   writetosql = true;            //WRITE RESULTS TO SQL DATABASE
-  Bool_t   printascii = true;           //PRINT THE STACKS TO ASCII FILE FOR VISUAL INSPECTION
-  const Int_t    heln       = HELN;      //QUARTET(4) OCTET(8)
-  const Int_t    stksz      = HELN*10+1; //STACK SIZE 10 CYCLES
+  Bool_t         writetopdf = false;           //SAVE RESULTS ALSO IN PDF
+  Bool_t         writetosql = true;            //WRITE RESULTS TO SQL DATABASE
+  Bool_t         printascii = false;            //PRINT THE STACKS TO ASCII FILE FOR VISUAL INSPECTION
+  const Int_t    heln       = HELN;            //QUARTET(4) OCTET(8)
+  const Int_t    stksz      = HELN*10+1;       //STACK SIZE 10 CYCLES
 
-  const Double_t tsettle    = 0.000090;       //90 MICROSECOND TSETTLE TIME
-  const Double_t freq       = (Double_t)FREQ; //DATA COLLECTION FREQUENCY
-  const Double_t gate       = 1./freq-tsettle;//ACTIVE GATE WHILE TAKING DATA
-  const Double_t anpow      = ANPOW;          //ANALYZING POWER
-  const Double_t ptar       = 0.08012;        //TARGET POLARIZATION
-  const Int_t    bcmped     = QPED;           //BCM PEDESTAL
+  const Double_t tsettle    = 0.000090;        //90 MICROSECOND TSETTLE TIME
+  const Double_t freq       = (Double_t)FREQ;  //DATA COLLECTION FREQUENCY
+  const Double_t gate       = 1./freq-tsettle; //ACTIVE GATE WHILE TAKING DATA
+  const Double_t anpow      = ANPOW;           //ANALYZING POWER
+  const Double_t ptar       = 0.08012;         //TARGET POLARIZATION
+  const Int_t    bcmped     = QPED;            //BCM PEDESTAL
 
   cout << "molana_anaysis.C() ==> Analyzing power set is: " << anpow << endl;
   cout << "molana_anaysis.C() ==> Charge pedestal set is: " << bcmped << endl;
@@ -63,7 +64,7 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
     cout <<"Set environment variable MOLLER_ROOTFILE_DIR\n"
          <<"to point at the directory where the .root files\n"
          <<"should be stored then rerun."<<endl;
-    exit(0);
+    exit(1);
   }
   if(!gSystem->Getenv("MOLANA_DB_HOST")){
     cout << "Set environment variable MOLANA_DB_HOST" << endl
@@ -142,7 +143,7 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
   cout << "gSystem->AccessPathName( " << sfile << " ): " << gSystem->AccessPathName( sfile ) << endl;
   if( (gSystem->AccessPathName( sfile )) ){  // RETURNS: FALSE IF ONE CAN ACCESS FILE, TRUE IF YOU CAN'T 
     cout << "molana_anaysis.C() ==> ROOT increments file not found" << endl;
-    exit(0);
+    exit(2);
   } else {
     cout << "molana_anaysis.C() ==> ROOT increments file found" << endl;
   }
@@ -321,6 +322,7 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
   Int_t      ticks_stk[stksz];
   Int_t      fileeventnumber_stk[stksz];
   Int_t      unixtime_stk[stksz];
+  Int_t      errorcode_stk[stksz];
 
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
@@ -359,10 +361,14 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
   for(Int_t i = 0; i < stksz; i++) ticks_stk[i] = 0;
   for(Int_t i = 0; i < stksz; i++) unixtime_stk[i] = 0;
   for(Int_t i = 0; i < stksz; i++) fileeventnumber_stk[i] = 0;
+  for(Int_t i = 0; i < stksz; i++) errorcode_stk[i] = -1;
+
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
   // CYCLE TOSSING
   // WHEN YOU ADD AN ERROR -- INCREMENT 'ne', GIVE IT A NAME IN 'errname' (for printout)
+  Int_t errorindex = 0;        //INDEX FOR PATTERN START WHERE ERROR CODE FOR PATTERN WILL RESIDE
+  Int_t errorcode = 0;         //INT TO BE MANIPULATED FOR ERROR CODE SAVE
   const Int_t ne = 13;
   Int_t errcnts[ne];
   for(Int_t i = 0; i < ne; i++) errcnts[i] = 0;
@@ -379,7 +385,7 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
                                    "Negative Singles Right Inrcement Scaler 2 ",
                                    "Clock Increment Problem ",
                                    "Accid > Coin (Low-coin-rate Issue)"
-                                   };
+                                  };
 
 
   ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
@@ -521,12 +527,10 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
   for(Int_t i = 0; i < npattD; i++) trPatt->Branch( pattnamesD[i] , &temppattvaluesD[i] , Form( "%s/D",pattnamesD[i] ) );
   for(Int_t i = 0; i < npattI; i++) trPatt->Branch( pattnamesI[i] , &temppattvaluesI[i] , Form( "%s/I",pattnamesI[i] ) );
  
-
-  ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+                                                        
+  /////////////////////////////////////////////////////////////// ⠂⠂⠂⠂⠂◘⠨⠨⠨⠨⠨⠨⠨⠨
   // START LOOPING THROUGH THE ENTRIES OF THE ROOT NTUPLE
   const Long64_t nentries = T->GetEntriesFast();
-  //cout << "Total number of scaler entries in ROOT file: " << nentries << endl;
-  // FIXME: IF THIS IS ZERO THEN WE NEED TO SKIP TO END!
 
   Long64_t nbytes = 0, nb = 0;
   for (Long64_t entry = 0; entry < nentries; entry++) {
@@ -534,15 +538,18 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
     nbytes += nb;
 
     if(printascii){
-      if(entry%25==0) output2 << std::setw(6) << " ENTRY  " << std::setw(6) << "TRGPAT  " << std::setw(6) << "TRGHEL  " << std::setw(6) << "CLKHEL  " << std::setw(6) << "  COIN  " << std::setw(6) << " ACCID  " << std::setw(6) << "   BCM  " << endl;
-      if(entry%25!=0) output2 << std::setw(6) << entry << "  " << std::setw(6) << trighelpatt << "  " << std::setw(6) << trighelvalue << "  " << std::setw(6) << clockheltrig << "  " << std::setw(6) << coinc1 << "  " << std::setw(6) << accid1 << "  " << std::setw(6) << bcm << endl;
+      if(entry%25==0){
+        output2 << std::setw(6) << " ENTRY  " << std::setw(6) << "TRGPAT  " << std::setw(6) << "TRGHEL  " << std::setw(6) << "CLKHEL  " << std::setw(6) << "  COIN  " << std::setw(6) << " ACCID  " << std::setw(6) << "   BCM  " << endl;
+        output2 << std::setw(6) << entry << "  " << std::setw(6) << trighelpatt << "  " << std::setw(6) << trighelvalue << "  " << std::setw(6) << clockheltrig << "  " << std::setw(6) << coinc1 << "  " << std::setw(6) << accid1 << "  " << std::setw(6) << bcm << endl;
+      } else {
+        output2 << std::setw(6) << entry << "  " << std::setw(6) << trighelpatt << "  " << std::setw(6) << trighelvalue << "  " << std::setw(6) << clockheltrig << "  " << std::setw(6) << coinc1 << "  " << std::setw(6) << accid1 << "  " << std::setw(6) << bcm << endl;
+      }
     }
 
     fileeventnumber_stk[entry%stksz] = entry;
 
     //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-    //PRINT OUT THE STACKS FOR VISUAL CONFIRMATION :: NO CALCULATIONS DONE HERE
-    //A "*" TO THE RIGHT OF A NUMBER IS BEGGINING OF HELICITY PATTERN
+    //PRINT OUT THE STACKS FOR VISUAL CONFIRMATION :: NO CALCULATIONS DONE HERE :: A "▀" BREAKS THE PATTERNS
     if(printascii && trighelpatt == 0 && entry != 0){
       //PRINT EVENT NUMBER STACK
       output << "evt\%1000[";
@@ -650,11 +657,17 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
     ///////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
     // NEW PATTERN
     if( trighelpatt == 0 ){
+      errorcode = 0;               //RESET THE ERROR CODE TO ZERO
+      errorindex = entry%stksz;    //WHERE ON THE STACK WILL THIS ERROR CODE BE SAVED
+      errorcode_stk[errorindex] = 0;
+      //cout << "entry(" << entry << ") errorindex(" << errorindex << ") ";
       if(printascii) output << endl;
       goodhelpatt++;               //ASSUME IT'S GOOD HELICITY PATTERN, THIS LINE SHOULD BE ONLY HERE
       if( numhelcyc != heln ){
         goodhelpatt = -1*skippatt; //LAST PATTERN DID NOT HAVE PEOPER NUMBER OF HELICITY CYCLES/FLIPS.
         errcnts[0]++;              //ADD TO ERROR COUNTING INSUFFICIENT FLIPS IN CYCLE
+        if(printascii) output << "[" << entry << "] ERROR Insufficient flips in helicity cycle." << endl;
+        errorcode_stk[errorindex] |= (1 << 0);
       }
       numhelcyc = 0;               //IF NEW CYCLE CHANGE HELICITY FLIP VALUE TO ONE
     }
@@ -666,26 +679,31 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
     if( (abs(singl1-singl2) > 2) ){          //DO LEFT SCALER COUNTS MATCH?
       goodhelpatt = -1*skippatt;
       errcnts[4]++;
+      errorcode_stk[errorindex] |= (1 << 0);
       if(printascii) output << "[" << entry << "] ERROR Left Scaler Issue" << endl;
     }
     if( (abs(singr1-singr2) > 2) ){          //DO RIGHT SCALER COUNTS MATCH?
       goodhelpatt = -1*skippatt;
       errcnts[5]++;
+      errorcode_stk[errorindex] |= (1 << 5);
       if(printascii) output << "[" << entry << "] ERROR Right Scaler Issue" << endl;
     }
     if( (abs(coinc1-coinc2) > 2) ){          //DO COINCIENCE SCALER COUNTS MATCH?
       goodhelpatt = -1*skippatt;
       errcnts[7]++;
+      errorcode_stk[errorindex] |= (1 << 7);
       if(printascii) output << "[" << entry << "] ERROR Coin Scaler Issue" << endl;
     }
     if( (abs(accid1-accid2) > 2) ){          //DO ACCIDENTAL SCALER COUNTS MATCH?
       goodhelpatt = -1*skippatt;
       errcnts[8]++;
+      errorcode_stk[errorindex] |= (1 << 8);
       if(printascii) output << "[" << entry << "] ERROR Accidental Scaler Issue" << endl;
     }
-    if( accid1 > coinc1 ){                  //ACCID > COIN? ISSUE WITH LOW RATE SCANS
+    if( accid1 > coinc1 ){                   //ACCID > COIN? ISSUE WITH LOW RATE SCANS
       goodhelpatt = -1*skippatt;             //WILL BE A RARE EVENT IN DATA WHICH
       errcnts[12]++;                         //ISN'T INTENDED TO BE USED FOR POLZN
+      errorcode_stk[errorindex] |= (1 << 12);
       if(printascii) output << "[" << entry << "] ERROR Accidental > Coin " << endl;
     }
 
@@ -695,17 +713,20 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
     if( (clockheltrig != trighelvalue) || (clockheltrig < 0) ){
       goodhelpatt = -1*skippatt;
       errcnts[1]++;
+      errorcode_stk[errorindex] |= (1 << 1);
       if(printascii) output << "[" << entry << "] ERROR Helicty Mismatch" << endl;
     }
 
     if( clocktimer < (expclock*0.95) || clocktimer > (expclock*1.05) ){//IS CLOCK INCREMENT ACCEPTABLE?
       goodhelpatt = -1*skippatt;
       errcnts[11]++; //FIXME: WRONG ERROR CODE?
+      errorcode_stk[errorindex] |= (1 << 11);
       if(printascii) output << "[" << entry << "] ERROR Clock Discrepency" << endl;
     }
     if( bcm < 0 ){                            //NEGATIVE INCREMENT SIGNIFIES A SCALAR PROBLEM
       goodhelpatt = -1*skippatt;
       errcnts[6]++;
+      errorcode_stk[errorindex] |= (1 << 6);
       if(printascii) output << "[" << entry << "] ERROR Beam Current Negative" << endl;
     }
 
@@ -713,28 +734,43 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
     if( bcm < 10 ){                           //
       goodhelpatt = -1*skippatt;
       errcnts[3]++;
+      errorcode_stk[errorindex] |= (1 << 3);
       if(printascii) output << "[" << entry << "] ERROR Beam Current Low / Beam Off" << endl;
     }
 
 
     //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-    //PATTERN CHECK: DO WE HAVE A GOOD PATTERN THIS SHOULD ONLY CHECK AT BEGINNING OF PATTERN
-    //THIS WILL HAVE TO BE MODIFIED/UPDATED/REDONE FOR LARGER PATTERN DECISIONS.
+    //PATTERN CHECK: DO WE HAVE A GOOD PATTERN IN THE CANDIDATE PATTERN/TRAIN/ZUG TO BE RECORDED
     if( goodhelpatt > 0 ){
-      Int_t goodpattindex = (entry-heln)%stksz;       //INDEX TO START LOOKING AT FOR GOOD PATTERN
+      Int_t goodpattindex = (entry-1*heln)%stksz;       //INDEX TO START LOOKING AT FOR GOOD PATTERN >!!!!<
       if(goodpattindex < 0) goodpattindex += stksz;   //PROTECT AGAINST RETURNING NEGATIVE REMAINDER
+      Int_t patterrindex = goodpattindex;
       Int_t pattarray[heln];
+      Int_t cyclarray[heln];
       if(printascii) output << "Helicity pattern stack indices: ";
       for(Int_t i = 0; i < heln; i++){
         Int_t fillindex = (goodpattindex+i)%stksz;    //
         if(fillindex < 0) fillindex += stksz;
         pattarray[i] = trighelvalue_stk[fillindex];
+        cyclarray[i] = trighelpatt_stk[fillindex];
         if(printascii) output << fillindex << ",";
       }
+      Int_t cyclecount = 0;                           //TRIGHELPATT 0:STARTPATTERN 1:OTHERWISE; SUM SHOULD EQUAL HELN-1
+      for(Int_t i = 0; i < heln; i++){
+        cyclecount += cyclarray[i];
+      }
       if(printascii){
-        output << "Past helicity pattern: ";
+        output << "Past helicity / cycle pattern: ";
         for(Int_t j = 0; j < heln; j++) output << pattarray[j] << ",";
+        output << " / ";
+        for(Int_t j = 0; j < heln; j++) output << cyclarray[j] << ",";
         output << endl;
+      }
+      if( cyclecount != (heln-1) ){
+        goodhelpatt = -1*skippatt;
+        errcnts[2]++;
+        errorcode_stk[patterrindex] |= (1 << 2);
+        if(printascii) output << "[" << goodpattindex << "] UGLY HELICITY PATTERN :: Wrong number of cycles in pattern!" << endl;        
       }
       for(Int_t k = 1; k < heln; k++){
         //FOR 4 Pattern, (pattarray[K-1]+pattarray[K])%2 VARIES AS {1,0,1} THE SAME AS K%2 WHERE K is {1,2,3}
@@ -743,12 +779,12 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
         if( ((k%2)+pow(0,abs(k%4))) != ((pattarray[k-1]+pattarray[k])%2) ){
           goodhelpatt = -1*skippatt;
           errcnts[2]++;
-          if(printascii) output << "[" << goodpattindex << "] UGLY HELICITY PATTERN" << endl;
+          errorcode_stk[patterrindex] |= (1 << 2);
+          if(printascii) output << "[" << goodpattindex << "] UGLY HELICITY PATTERN :: Not a pre-defined pattern! Current error code: " << errorcode_stk[patterrindex] << endl;
           break;
         }
       }
     }
-
 
     //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
     //DECLARE TEMP STACKS TO WRITE PATTERN TREE
@@ -763,13 +799,13 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
     Int_t   tempsign(0);       //beginning sign of pattern
     Int_t   temperror(0);      //errors in cycle
 
-
     //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
     //LET'S WRITE SOME ASYMMETRY DATA HERE IF WE HAVE A GOOD PATTERN
     if( goodhelpatt > 0 ){ 
       //GET THE INDEX FOR THE GOOT PATERN AND START CYCLING
-      Int_t goodpattindex = (entry-heln)%stksz;     //INDEX TO START AT FOR HELICITY STACK
+      Int_t goodpattindex = (entry-1*heln)%stksz;     //INDEX TO START AT FOR HELICITY STACK
       if(goodpattindex < 0) goodpattindex += stksz; //WHY DOES C++ SOMETIMES RETURN NEGATIVE MODULO, OR IS % A REMAINDER HERE???
+      Int_t patterrindex = goodpattindex;
       if(printascii) output << "  --> Stack Index of Most Recent Good Pattern: " << goodpattindex << ", for event " << fileeventnumber_stk[goodpattindex] << endl;
       Bool_t b_beamokay = true;
 
@@ -791,7 +827,7 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
 
         //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
         //RECORD THE INCREMENTS IN THE TEMPORARY STACKS USED FOR THE PATTERN TREE
-        temphels[i] = helstate; //helicity sign
+        temphels[i] = helstate;                  //helicity sign
         tempcoin[i] = coinc1_stk[goodpattindex]; //coin
         templeft[i] = singl1_stk[goodpattindex]; //left
         temprght[i] = singr1_stk[goodpattindex]; //right
@@ -803,7 +839,7 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
         if(i==0) temperror = 0;    
 
         //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
-        //TODO: HERE WE WILL FILL THE INCREMENT HISTOGRAMS AND GRAPHS
+        // HERE WE WILL FILL THE INCREMENT HISTOGRAMS AND GRAPHS
         H[ 0]->Fill( singl1_stk[goodpattindex] );
         H[ 1]->Fill( singr1_stk[goodpattindex] );
         H[ 2]->Fill( coinc1_stk[goodpattindex] );
@@ -818,20 +854,6 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
         H[11]->Fill( coinc1_stk[goodpattindex]-coinc2_stk[goodpattindex] );
         H[12]->Fill( accid1_stk[goodpattindex]-accid2_stk[goodpattindex] );
         H[13]->Fill( clocktimer_stk[goodpattindex] );
-
-        //FIXME: THESE BELONG OUTSIDE THE GOODCYCLES CONDITIONAL YOU FOOL.
-        //l1scalsum += singl1_stk[goodpattindex];              //LEFT SCALER SUM
-        //r1scalsum += singr1_stk[goodpattindex];              //RIGHT SCALER SUM
-        //c1scalsum += coinc1_stk[goodpattindex];              //COINC SCALER SUM
-        //a1scalsum += accid1_stk[goodpattindex];              //ACCID SCALER SUM
-        //bcmscalsm += bcm_stk[goodpattindex];                 //BCM SCALER SUM
-        //clkscalsm += clocktimer_stk[goodpattindex];          //CLOCK SCALER SUM
-        //gr_sngl1->SetPoint( grcyclctr, fileeventnumber_stk[goodpattindex], (Double_t)l1scalsum );
-        //gr_sngr1->SetPoint( grcyclctr, fileeventnumber_stk[goodpattindex], (Double_t)r1scalsum );
-        //gr_coin1->SetPoint( grcyclctr, fileeventnumber_stk[goodpattindex], (Double_t)c1scalsum );
-        //gr_accd1->SetPoint( grcyclctr, fileeventnumber_stk[goodpattindex], (Double_t)a1scalsum );
-        //gr_charg->SetPoint( grcyclctr, fileeventnumber_stk[goodpattindex], (Double_t)bcmscalsm );
-        //gr_clock->SetPoint( grcyclctr, fileeventnumber_stk[goodpattindex], (Double_t)clkscalsm );
 
         gr_bcmrt->SetPoint( grcyclctr, fileeventnumber_stk[goodpattindex], (Double_t)bcm_stk[goodpattindex]*(1./gate) );
         gr_slrat->SetPoint( grcyclctr, fileeventnumber_stk[goodpattindex], (Double_t)singl1_stk[goodpattindex]*(1./gate) );
@@ -885,6 +907,7 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
                << ", bcmsums[1]: "         << std::setw(7) << bcmsums[1] << endl;
         output << "        --> asymu: "    << std::setw(7) << asymu      << endl;
         output << "        --> asymc: "    << std::setw(7) << asymc      << endl;
+        output << "        --> qasym: "    << std::setw(7) << (bcmsums[1]-bcmsums[0])/(bcmsums[1]+bcmsums[0]) << endl;
         output << endl;
       }
 
@@ -920,7 +943,8 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
       }
 
       temppattvaluesD[ 0] = (coin1 + coin0) / heln;
-      temppattvaluesD[ 1] = (coin1 - coin0) / (coin1 + coin0); 
+      //temppattvaluesD[ 1] = (coin1 - coin0) / (coin1 + coin0);
+      temppattvaluesD[ 1] = ( ((coin1 - accd1)/curr1) - ((coin0 - accd0)/curr0) ) / ( ((coin1 - accd1)/curr1) + ((coin0 - accd0)/curr0) );
       temppattvaluesD[ 2] = (left1 + left0) / heln; 
       temppattvaluesD[ 3] = (left1 - left0) / (left1 + left0); 
       temppattvaluesD[ 4] = (rght1 + rght0) / heln; 
@@ -930,10 +954,78 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
       temppattvaluesD[ 8] = (curr1 + curr0) / heln; 
       temppattvaluesD[ 9] = (curr1 - curr0) / (curr1 + curr0); 
       temppattvaluesI[ 0] = temptime; 
-      temppattvaluesI[ 1] = tempnumb; //numb
-      temppattvaluesI[ 2] = tempsign; //sign
-      temppattvaluesI[ 3] = 0;        //FIXME: There are no errors this way... :(
+      temppattvaluesI[ 1] = tempnumb;         //numb
+      temppattvaluesI[ 2] = tempsign;         //sign
+      temppattvaluesI[ 3] = errorcode_stk[patterrindex];
+      //cout << "trigger(" << trighelpatt_stk[patterrindex] << ") errorcode(" << errorcode_stk[patterrindex] << ")" << endl;
+      output << "^^^^ heltrig(" << trighelpatt_stk[patterrindex] << ") entry: " << fileeventnumber_stk[patterrindex] << ", errorcode(" << errorcode_stk[patterrindex] << ")" << endl << endl;
+      trPatt->Fill();
 
+    } //ELSE IF() WE STILL WANT TO WRITE BAD PATTERNS WITH ERROR CODES TO THE PATTERNS FILE
+    else if( goodhelpatt <= 0 && trighelpatt == 0 && entry > 1*heln){ 
+      //GET THE INDEX FOR THE GOOT PATERN AND START CYCLING
+      Int_t goodpattindex = (entry-1*heln)%stksz;     //INDEX TO START AT FOR HELICITY STACK
+      if(goodpattindex < 0) goodpattindex += stksz; //WHY DOES C++ SOMETIMES RETURN NEGATIVE MODULO, OR IS % A REMAINDER HERE???
+      Int_t patterrindex = goodpattindex;
+      for(Int_t i = 0; i < heln; i++){
+        Int_t helstate = trighelvalue_stk[ goodpattindex ];
+
+        //////////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+        //RECORD THE INCREMENTS IN THE TEMPORARY STACKS USED FOR THE PATTERN TREE
+        temphels[i] = helstate;                  //helicity sign
+        tempcoin[i] = coinc1_stk[goodpattindex]; //coin
+        templeft[i] = singl1_stk[goodpattindex]; //left
+        temprght[i] = singr1_stk[goodpattindex]; //right
+        tempaccd[i] = accid1_stk[goodpattindex]; //accid
+        tempcurr[i] = bcm_stk[goodpattindex];    //bcm
+        if(i==0) temptime  = unixtime;
+        if(i==0) tempnumb  = fileeventnumber_stk[goodpattindex];
+        if(i==0) tempsign  = helstate; 
+
+        goodpattindex++;
+        goodpattindex = goodpattindex%(stksz);
+      }//END FOR LOOP OVER HELICITY CYCLES.
+
+
+      //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
+      //CALCULATE ASYMS AND AVERAGE AND FILL THE PATTERNS ROOT FILE
+      Float_t coin0(0.),coin1(0.),coinS(0.),left0(0.),left1(0.),leftS(0.);
+      Float_t rght0(0.),rght1(0.),rghtS(0.),accd0(0.),accd1(0.),accdS(0.);
+      Float_t curr0(0.),curr1(0.),currS(0.);
+      for(Int_t i = 0; i < heln; i++){
+        if(temphels[i] == 0){
+          coin0 += tempcoin[i];
+          left0 += templeft[i];
+          rght0 += temprght[i];
+          accd0 += tempaccd[i];
+          curr0 += tempcurr[i];
+        } else {
+          coin1 += tempcoin[i];
+          left1 += templeft[i];
+          rght1 += temprght[i];
+          accd1 += tempaccd[i];
+          curr1 += tempcurr[i];
+        }
+      }
+
+      temppattvaluesD[ 0] = (coin1 + coin0) / heln;
+      //temppattvaluesD[ 1] = (coin1 - coin0) / (coin1 + coin0);
+      temppattvaluesD[ 1] = ((coin1 - accd1)/curr1) - ((coin0 - accd0)/curr0) / ( ((coin1 - accd1)/curr1) + ((coin0 - accd0)/curr0) );
+      temppattvaluesD[ 2] = (left1 + left0) / heln; 
+      temppattvaluesD[ 3] = (left1 - left0) / (left1 + left0); 
+      temppattvaluesD[ 4] = (rght1 + rght0) / heln; 
+      temppattvaluesD[ 5] = (rght1 - rght0) / (rght1 + rght0); 
+      temppattvaluesD[ 6] = (accd1 + accd0) / heln; 
+      temppattvaluesD[ 7] = (accd1 - accd0) / (accd1 + accd0); 
+      temppattvaluesD[ 8] = (curr1 + curr0) / heln; 
+      temppattvaluesD[ 9] = (curr1 - curr0) / (curr1 + curr0); 
+      temppattvaluesI[ 0] = temptime; 
+      temppattvaluesI[ 1] = tempnumb;         //numb
+      temppattvaluesI[ 2] = tempsign;         //sign
+      if(errorcode_stk[patterrindex] == 0) errorcode_stk[patterrindex] = -9; //ASSIGN -9 TO PATTERNS THAT WERE OTHERWISE GOOD BUT SKIPPED BECAUSE OF BAD NEIGHBOR
+      temppattvaluesI[ 3] = errorcode_stk[patterrindex];
+      //cout << "trigger(" << trighelpatt_stk[patterrindex] << ") errorcode(" << errorcode_stk[patterrindex] << ")*****" << endl;
+      output << "^^^^ heltrig(" << trighelpatt_stk[patterrindex] << ") entry: " << fileeventnumber_stk[patterrindex] << ", errorcode(" << errorcode_stk[patterrindex] << ")*****" << endl << endl;
       trPatt->Fill();
 
     }//END ASYMMETRY CALCULATION IF(goodhelpatt > skippatt)
@@ -955,7 +1047,7 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
   }
   errorsummary.close();
 
-  if(grpattctr == 0){//TODO: COME UP WITH A BETTER FIX THAN THIS. SHOULD PROBABLY REPORT CLOCK, ANPOW, QPED, ETC
+  if(grpattctr == 0){//NOTE: EXITING DUE TO ZERO HIST/GRAPH ENTRIES //TODO: SHOULD PROBABLY STILL REPORT QPED, CLOCK, ETC (IF AVAILABLE)
 
     //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
     // WRITE DATA STATS TO SQL DATABASE ON START ... THIS WAY RUN DATA IS INSERTED EVEN IF DATA IS BAD
@@ -967,7 +1059,7 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
       TSQLResult * resultEnd = ServerEnd->Query(queryEnd.Data());
       ServerEnd->Close();
     }
-    exit(0);
+    exit(3);
     //////////////////////////////////////////////////////////  (╯°□°）╯︵ ┻━┻
     // SAVE RUN DATA SUMMARY -- RUN,SINGL,SINGR,COINC,ACCID,BCM,ASYM,ASYMERR,POL,POLERR
     ofstream summary;
@@ -1242,5 +1334,7 @@ void molana_analysis(string FILE, Int_t HELN, Double_t FREQ, Double_t ANPOW, Dou
     TSQLResult * resultEnd = ServerEnd->Query(queryEnd.Data());
     ServerEnd->Close();
   }
+
+  return(100);
 
 }
